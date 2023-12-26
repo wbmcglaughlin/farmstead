@@ -3,6 +3,13 @@ use bevy_ecs_tilemap::prelude::*;
 
 mod helpers;
 
+// TODO: this needs to be implemented into a component to add to each tile.
+enum Tiles {
+    Field,
+    Grass,
+    Farmland,
+}
+
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
 
@@ -21,7 +28,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     tilemap_id: TilemapId(tilemap_entity),
                     // Can just change this to get different tiles probably.
                     // The bundle should also contain a way to access what type of tile this is.
-                    texture_index: TileTextureIndex(4),
+                    texture_index: TileTextureIndex(2),
                     ..Default::default()
                 })
                 .id();
@@ -59,6 +66,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
+        .insert_resource(Msaa::Off)
         .add_systems(Startup, startup)
         .add_systems(Update, helpers::camera::movement)
         .run();
