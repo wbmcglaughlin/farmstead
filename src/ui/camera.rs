@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::TilemapBundle;
 
 use crate::map::tilemap::MainTileMap;
 
