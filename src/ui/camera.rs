@@ -1,13 +1,26 @@
-use bevy::{input::Input, math::Vec3, prelude::*, render::camera::Camera};
+use bevy::prelude::*;
+use bevy_ecs_tilemap::map::{TilemapSize, TilemapTileSize};
 
-// A simple camera system for moving and zooming the camera.
+use crate::map::tilemap::MainTileMap;
+
+pub fn add_camera(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
+}
+
 #[allow(dead_code)]
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut OrthographicProjection), With<Camera>>,
+    mut query: Query<(
+        &GlobalTransform,
+        &mut Transform,
+        &mut OrthographicProjection,
+        &Camera,
+    )>,
+    q_window: Query<&Window>,
+    tilemap: Query<(&TilemapSize, &TilemapTileSize), (With<MainTileMap>, Without<Camera>)>,
 ) {
-    for (mut transform, mut ortho) in query.iter_mut() {
+    for (global, mut transform, mut ortho, camera) in query.iter_mut() {
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::A) {
@@ -34,12 +47,41 @@ pub fn movement(
             ortho.scale -= 0.1;
         }
 
-        if ortho.scale < 0.5 {
-            ortho.scale = 0.5;
+        if ortho.scale < 0.2 {
+            ortho.scale = 0.2;
         }
 
         let z = transform.translation.z;
-        transform.translation += time.delta_seconds() * direction * 500.;
+        let mut translation = time.delta_seconds() * direction * 500.;
+
+        // We want the center of the screen to contain atleast a tile. To do this we need to find
+        // if the center point is contained by all the four corners of the tilemap.
+        let (mapsize, tilesize) = tilemap.single();
+        let tilemapwidth = mapsize.x as f32 * tilesize.x;
+        let tilemapheight = mapsize.y as f32 * tilesize.y;
+
+        let window = q_window.single();
+        let center_pos = Vec2::new(window.width() / 2.0, window.height() / 2.0);
+
+        // Calculate a ray pointing from the camera into the world based on the cursor's position.
+        let ray = camera.viewport_to_world_2d(global, center_pos).unwrap();
+
+        // Clamp the direction of travel to one that would be restoring. Its better to do it this
+        // way as there is no "snapping".
+        if ray.x < -tilemapwidth / 2.0 {
+            translation.x = 0_f32.max(translation.x);
+        }
+        if ray.x > tilemapwidth / 2.0 {
+            translation.x = 0_f32.min(translation.x);
+        }
+        if ray.y < -tilemapheight / 2.0 {
+            translation.y = 0_f32.max(translation.y);
+        }
+        if ray.y > tilemapheight / 2.0 {
+            translation.y = 0_f32.min(translation.y);
+        }
+
+        transform.translation += translation;
         // Important! We need to restore the Z values when moving the camera around.
         // Bevy has a specific camera setup and this can mess with how our layers are shown.
         transform.translation.z = z;

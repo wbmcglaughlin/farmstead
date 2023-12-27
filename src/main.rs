@@ -17,6 +17,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
+        .add_systems(Startup, ui::camera::add_camera)
         .add_systems(Startup, map::tilemap::generate_map)
         .add_systems(Update, ui::camera::movement)
         .run();
