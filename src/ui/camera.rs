@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_ecs_tilemap::map::{TilemapSize, TilemapTileSize};
 
 use crate::map::tilemap::MainTileMap;
 
@@ -16,7 +17,11 @@ pub fn movement(
         &mut OrthographicProjection,
         &Camera,
     )>,
-    tilemap: Query<&GlobalTransform, (With<MainTileMap>, Without<Camera>)>,
+    q_window: Query<&Window>,
+    tilemap: Query<
+        (&GlobalTransform, &TilemapSize, &TilemapTileSize),
+        (With<MainTileMap>, Without<Camera>),
+    >,
 ) {
     for (global, mut transform, mut ortho, camera) in query.iter_mut() {
         let mut direction = Vec3::ZERO;
@@ -61,11 +66,20 @@ pub fn movement(
         // Bevy has a specific camera setup and this can mess with how our layers are shown.
         transform.translation.z = z;
 
-        let screen_coords = camera
-            .world_to_ndc(global, tilemap.single().translation())
-            .unwrap();
-        dbg!(screen_coords);
-        if screen_coords.x > 1.0 || screen_coords.x < -1.0 {
+        // We want the center of the screen to contain atleast a tile. To do this we need to find
+        // if the center point is contained by all the four corners of the tilemap.
+        let (tilemap_global_transform, mapsize, tilesize) = tilemap.single();
+        let tilemap_translation = tilemap_global_transform.translation();
+        let tilemapwidth = mapsize.x as f32 * tilesize.x;
+        let tilemapheight = mapsize.y as f32 * tilesize.y;
+
+        let window = q_window.single();
+        let cursor_pos = Vec2::new(window.width() / 2.0, window.height() / 2.0);
+
+        // Calculate a ray pointing from the camera into the world based on the cursor's position.
+        let ray = camera.viewport_to_world_2d(global, cursor_pos).unwrap();
+
+        if ray.y > tilemapheight || ray.y < 0.0 || ray.x > tilemapwidth || ray.x < 0.0 {
             transform.translation -= time.delta_seconds() * direction * 500.;
             transform.translation.z = z;
             ortho.scale = old_ortho_scale;
