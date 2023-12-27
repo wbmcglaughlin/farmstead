@@ -17,7 +17,7 @@ pub fn movement(
         &mut OrthographicProjection,
         &Camera,
     )>,
-    tilemap: Query<&Transform, With<MainTileMap>>,
+    tilemap: Query<&GlobalTransform, (With<MainTileMap>, Without<Camera>)>,
 ) {
     for (global, mut transform, mut ortho, camera) in query.iter_mut() {
         let mut direction = Vec3::ZERO;
@@ -39,6 +39,8 @@ pub fn movement(
         }
 
         let mut ortho_scale = ortho.scale;
+        let old_ortho_scale = ortho.scale;
+
         if keyboard_input.pressed(KeyCode::Z) {
             ortho_scale += 0.1;
         }
@@ -51,9 +53,6 @@ pub fn movement(
             ortho_scale = 0.5;
         }
 
-        // TODO: get tilemap position.
-        let screen_coords = camera.world_to_ndc(global, tilemap.single().translation);
-        dbg!(screen_coords);
         // Apply ortho scale.
         ortho.scale = ortho_scale;
 
@@ -62,5 +61,15 @@ pub fn movement(
         // Important! We need to restore the Z values when moving the camera around.
         // Bevy has a specific camera setup and this can mess with how our layers are shown.
         transform.translation.z = z;
+
+        let screen_coords = camera
+            .world_to_ndc(global, tilemap.single().translation())
+            .unwrap();
+        dbg!(screen_coords);
+        if screen_coords.x > 1.0 || screen_coords.x < -1.0 {
+            transform.translation -= time.delta_seconds() * direction * 500.;
+            transform.translation.z = z;
+            ortho.scale = old_ortho_scale;
+        }
     }
 }
