@@ -53,15 +53,16 @@ pub fn movement(
             ortho_scale -= 0.1;
         }
 
-        if ortho_scale < 0.5 {
-            ortho_scale = 0.5;
+        if ortho_scale < 0.2 {
+            ortho_scale = 0.2;
         }
 
         // Apply ortho scale.
         ortho.scale = ortho_scale;
 
         let z = transform.translation.z;
-        transform.translation += time.delta_seconds() * direction * 500.;
+        let mut translation = time.delta_seconds() * direction * 500.;
+
         // Important! We need to restore the Z values when moving the camera around.
         // Bevy has a specific camera setup and this can mess with how our layers are shown.
         transform.translation.z = z;
@@ -69,20 +70,26 @@ pub fn movement(
         // We want the center of the screen to contain atleast a tile. To do this we need to find
         // if the center point is contained by all the four corners of the tilemap.
         let (tilemap_global_transform, mapsize, tilesize) = tilemap.single();
-        let tilemap_translation = tilemap_global_transform.translation();
         let tilemapwidth = mapsize.x as f32 * tilesize.x;
         let tilemapheight = mapsize.y as f32 * tilesize.y;
 
         let window = q_window.single();
-        let cursor_pos = Vec2::new(window.width() / 2.0, window.height() / 2.0);
-
+        let center_pos = Vec2::new(window.width() / 2.0, window.height() / 2.0);
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
-        let ray = camera.viewport_to_world_2d(global, cursor_pos).unwrap();
-
-        if ray.y > tilemapheight || ray.y < 0.0 || ray.x > tilemapwidth || ray.x < 0.0 {
-            transform.translation -= time.delta_seconds() * direction * 500.;
-            transform.translation.z = z;
-            ortho.scale = old_ortho_scale;
+        let ray = camera.viewport_to_world_2d(global, center_pos).unwrap();
+        dbg!(ray, translation);
+        if ray.x < -tilemapwidth / 2.0 {
+            translation.x = 0_f32.max(translation.x);
         }
+        if ray.x > tilemapwidth / 2.0 {
+            translation.x = 0_f32.min(translation.x);
+        }
+        if ray.y < -tilemapheight / 2.0 {
+            translation.y = 0_f32.max(translation.y);
+        }
+        if ray.y > tilemapheight / 2.0 {
+            translation.y = 0_f32.min(translation.y);
+        }
+        transform.translation += translation;
     }
 }
