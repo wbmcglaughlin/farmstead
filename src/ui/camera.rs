@@ -1,13 +1,25 @@
-use bevy::{input::Input, math::Vec3, prelude::*, render::camera::Camera};
+use bevy::prelude::*;
+use bevy_ecs_tilemap::TilemapBundle;
 
-// A simple camera system for moving and zooming the camera.
+use crate::map::tilemap::MainTileMap;
+
+pub fn add_camera(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
+}
+
 #[allow(dead_code)]
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut OrthographicProjection), With<Camera>>,
+    mut query: Query<(
+        &GlobalTransform,
+        &mut Transform,
+        &mut OrthographicProjection,
+        &Camera,
+    )>,
+    tilemap: Query<&Transform, With<MainTileMap>>,
 ) {
-    for (mut transform, mut ortho) in query.iter_mut() {
+    for (global, mut transform, mut ortho, camera) in query.iter_mut() {
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::A) {
@@ -26,17 +38,24 @@ pub fn movement(
             direction -= Vec3::new(0.0, 1.0, 0.0);
         }
 
+        let mut ortho_scale = ortho.scale;
         if keyboard_input.pressed(KeyCode::Z) {
-            ortho.scale += 0.1;
+            ortho_scale += 0.1;
         }
 
         if keyboard_input.pressed(KeyCode::X) {
-            ortho.scale -= 0.1;
+            ortho_scale -= 0.1;
         }
 
-        if ortho.scale < 0.5 {
-            ortho.scale = 0.5;
+        if ortho_scale < 0.5 {
+            ortho_scale = 0.5;
         }
+
+        // TODO: get tilemap position.
+        let screen_coords = camera.world_to_ndc(global, tilemap.single().translation);
+        dbg!(screen_coords);
+        // Apply ortho scale.
+        ortho.scale = ortho_scale;
 
         let z = transform.translation.z;
         transform.translation += time.delta_seconds() * direction * 500.;
