@@ -20,9 +20,9 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
             let tile_pos = TilePos { x, y };
 
             let val = perlin_map[x as usize][y as usize];
-            let tile = if val > 0.9 {
+            let tile = if val > 0.7 {
                 Tiles::Rock
-            } else if val > 0.8 {
+            } else if val > 0.65 {
                 Tiles::Grass
             } else {
                 Tiles::Field

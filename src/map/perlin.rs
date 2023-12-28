@@ -29,7 +29,7 @@ pub fn generate_perlin_noise_map(
                 let sample_y = y as f64 / scale;
 
                 let noise_value = perlin.get([sample_x, sample_y]) * 2.0 - 1.0;
-                noise_map[x][y] += noise_value * persistence.powi(o as i32);
+                noise_map[x][y] += noise_value / persistence.powi(o as i32);
 
                 // TODO: why is this in this location, this sets the value each octave, why not just on the last.
                 max_noise_height = noise_map[x][y].max(max_noise_height);
