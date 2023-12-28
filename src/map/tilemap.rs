@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use super::{
-    tile,
-    wave_function_collapse::{populate_tilemap, xy_i},
-};
+use super::{perlin::generate_perlin_noise_map, tile::Tiles};
 
 #[derive(Component)]
 pub struct MainTileMap;
@@ -16,20 +13,27 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
     let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
 
-    let tile_array = populate_tilemap(map_size);
+    let perlin_map = generate_perlin_noise_map(map_size, 6, 0.5, 2.0, 42);
 
     for x in 0..map_size.x {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
-            let texture_index = match tile_array[xy_i(map_size, x as usize, y as usize)] {
-                Some(val) => val.get_index(),
-                None => tile::Tiles::Grass.get_index(),
+
+            // TODO: this should be moved.
+            let val = perlin_map[x as usize][y as usize];
+            let tile = if val > 0.7 {
+                Tiles::Rock
+            } else if val > 0.65 {
+                Tiles::Grass
+            } else {
+                Tiles::Field
             };
+
             let tile_entity = commands
                 .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(texture_index),
+                    texture_index: TileTextureIndex(tile.get_texture_index()),
                     ..Default::default()
                 })
                 .id();
