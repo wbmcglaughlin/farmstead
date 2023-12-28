@@ -19,6 +19,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
 
+            // TODO: this should be moved.
             let val = perlin_map[x as usize][y as usize];
             let tile = if val > 0.7 {
                 Tiles::Rock
