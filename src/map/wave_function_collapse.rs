@@ -1,10 +1,21 @@
+use bevy::utils::hashbrown::HashSet;
 use bevy_ecs_tilemap::{map::TilemapSize, tiles::TilePos};
 
 use super::tile::Tiles;
 use rand::Rng;
 
 pub fn get_allowed_tiles(tile: Option<Tiles>) -> Vec<Tiles> {
-    vec![Tiles::Grass, Tiles::Dirt]
+    match tile {
+        Some(tile) => match tile {
+            Tiles::Field => vec![Tiles::Grass, Tiles::Field],
+            Tiles::Grass => vec![Tiles::Grass, Tiles::Farmland, Tiles::Dirt],
+            Tiles::Farmland => vec![Tiles::Grass, Tiles::Farmland],
+            Tiles::Dirt => vec![Tiles::Grass, Tiles::Dirt],
+            Tiles::Stone => vec![Tiles::Stone, Tiles::Dirt],
+            Tiles::Rock => vec![Tiles::Rock, Tiles::Stone],
+        },
+        None => vec![Tiles::Dirt],
+    }
 }
 
 pub fn populate_tilemap(map_size: TilemapSize) -> Vec<Option<Tiles>> {
@@ -15,18 +26,27 @@ pub fn populate_tilemap(map_size: TilemapSize) -> Vec<Option<Tiles>> {
         map_size,
         current_pos.x as usize,
         current_pos.y as usize,
-    )];
+    )]
+    .into_iter()
+    .collect::<HashSet<usize>>();
 
     while !queue.is_empty() {
-        dbg!(queue.len());
-        let tiles = get_allowed_tiles(tile_array[queue[0]]);
-        let tile = tiles
-            .get(rand::thread_rng().gen_range(0..tiles.len()))
-            .unwrap();
-        tile_array[queue[0]] = Some(*tile);
-        let mut empty = get_surrounding_empty_index(&tile_array, map_size, queue[0]);
-        queue.append(&mut empty);
-        queue.pop();
+        assert!(queue.len() < (map_size.x * map_size.y) as usize);
+
+        let mut temp_queue: HashSet<usize> = HashSet::new();
+        for pos in queue.iter() {
+            let tiles = get_allowed_tiles(tile_array[*pos]);
+            let tile = tiles
+                .get(rand::thread_rng().gen_range(0..tiles.len()))
+                .unwrap();
+            tile_array[*pos] = Some(*tile);
+        }
+        for pos in queue.iter() {
+            let empty: Vec<usize> = get_surrounding_empty_index(&tile_array, map_size, *pos);
+            temp_queue.extend(empty);
+        }
+
+        queue = temp_queue;
     }
 
     tile_array
@@ -58,7 +78,7 @@ pub fn get_surrounding_empty_index(
     index: usize,
 ) -> Vec<usize> {
     let mut surrounding = get_surrounding_index(map_size, index);
-    surrounding.retain(|i| !tile_array[*i].is_none());
+    surrounding.retain(|i| tile_array[*i].is_none());
 
     surrounding
 }
