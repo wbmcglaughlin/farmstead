@@ -32,7 +32,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
                 .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(tile.get_index()),
+                    texture_index: TileTextureIndex(tile.get_texture_index()),
                     ..Default::default()
                 })
                 .id();

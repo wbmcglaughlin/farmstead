@@ -11,7 +11,7 @@ pub enum Tiles {
 }
 
 impl Tiles {
-    pub fn get_index(&self) -> u32 {
+    pub fn get_texture_index(&self) -> u32 {
         match self {
             Tiles::Field => 0,
             Tiles::Grass => 1,
