@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
+use super::wave_function_collapse::populate_tilemap;
+
 #[derive(Component)]
 pub struct MainTileMap;
 
@@ -10,6 +12,8 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
     let map_size = TilemapSize { x: 128, y: 128 };
     let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
+
+    let tile_array = populate_tilemap(map_size);
 
     // TODO: this section needs to be changed to wfc.
     for x in 0..map_size.x {
