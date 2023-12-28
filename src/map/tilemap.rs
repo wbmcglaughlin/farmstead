@@ -11,6 +11,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
     let mut tile_storage = TileStorage::empty(map_size);
     let tilemap_entity = commands.spawn_empty().id();
 
+    // TODO: this section needs to be changed to wfc.
     for x in 0..map_size.x {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
