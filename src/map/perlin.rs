@@ -11,10 +11,12 @@ pub fn generate_perlin_noise_map(
     let perlin = Perlin::new(1);
     perlin.set_seed(seed);
 
+    // TODO: this should be used...
     let mut scale = 1.0;
 
     let height = map_size.x as usize;
     let width = map_size.y as usize;
+
     let mut noise_map = vec![vec![0.0; height]; width];
 
     let mut max_noise_height = f64::NEG_INFINITY;
@@ -29,11 +31,9 @@ pub fn generate_perlin_noise_map(
                 let noise_value = perlin.get([sample_x, sample_y]) * 2.0 - 1.0;
                 noise_map[x][y] += noise_value * persistence.powi(o as i32);
 
-                if noise_map[x][y] > max_noise_height {
-                    max_noise_height = noise_map[x][y];
-                } else if noise_map[x][y] < min_noise_height {
-                    min_noise_height = noise_map[x][y];
-                }
+                // TODO: why is this in this location, this sets the value each octave, why not just on the last.
+                max_noise_height = noise_map[x][y].max(max_noise_height);
+                min_noise_height = noise_map[x][y].min(min_noise_height);
             }
         }
         scale *= lacunarity;
