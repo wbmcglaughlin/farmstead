@@ -18,7 +18,6 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
 
     let tile_array = populate_tilemap(map_size);
 
-    // TODO: this section needs to be changed to wfc.
     for x in 0..map_size.x {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };

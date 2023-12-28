@@ -10,7 +10,7 @@ pub fn intersection(nums: Vec<Vec<Tiles>>) -> Vec<Tiles> {
         let unique_a: HashSet<Tiles> = temp_vec.into_iter().collect();
         intersect_result = unique_a
             .intersection(&intersect_result.into_iter().collect())
-            .map(|i| *i)
+            .copied()
             .collect::<Vec<_>>();
     }
     intersect_result
@@ -32,8 +32,8 @@ pub fn get_allowed_tiles(
             Some(tile) => match tile {
                 Tiles::Field => vec![Tiles::Grass, Tiles::Field],
                 Tiles::Grass => vec![Tiles::Grass, Tiles::Farmland, Tiles::Dirt],
-                Tiles::Farmland => vec![Tiles::Grass, Tiles::Farmland],
-                Tiles::Dirt => vec![Tiles::Grass, Tiles::Dirt],
+                Tiles::Farmland => vec![Tiles::Grass, Tiles::Farmland, Tiles::Dirt],
+                Tiles::Dirt => vec![Tiles::Grass, Tiles::Dirt, Tiles::Stone],
                 Tiles::Stone => vec![Tiles::Stone, Tiles::Dirt],
                 Tiles::Rock => vec![Tiles::Rock, Tiles::Stone],
             },
@@ -115,7 +115,7 @@ pub fn get_surroudning_filled_index(
     index: usize,
 ) -> Vec<usize> {
     let mut surrounding = get_surrounding_index(map_size, index);
-    surrounding.retain(|i| !tile_array[*i].is_none());
+    surrounding.retain(|i| tile_array[*i].is_some());
 
     surrounding
 }
