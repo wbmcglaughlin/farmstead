@@ -9,3 +9,16 @@ pub enum Tiles {
     Stone,
     Rock,
 }
+
+impl Tiles {
+    pub fn get_index(&self) -> u32 {
+        match self {
+            Tiles::Field => 0,
+            Tiles::Grass => 1,
+            Tiles::Farmland => 2,
+            Tiles::Dirt => 3,
+            Tiles::Stone => 4,
+            Tiles::Rock => 5,
+        }
+    }
+}

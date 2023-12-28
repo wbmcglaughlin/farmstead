@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use super::wave_function_collapse::populate_tilemap;
+use super::{
+    tile,
+    wave_function_collapse::{populate_tilemap, xy_i},
+};
 
 #[derive(Component)]
 pub struct MainTileMap;
@@ -19,11 +22,15 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
     for x in 0..map_size.x {
         for y in 0..map_size.y {
             let tile_pos = TilePos { x, y };
+            let texture_index = match tile_array[xy_i(map_size, x as usize, y as usize)] {
+                Some(val) => val.get_index(),
+                None => tile::Tiles::Grass.get_index(),
+            };
             let tile_entity = commands
                 .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(1),
+                    texture_index: TileTextureIndex(texture_index),
                     ..Default::default()
                 })
                 .id();
