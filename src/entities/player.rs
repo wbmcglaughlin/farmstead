@@ -5,6 +5,9 @@ pub struct Player {
     transform: Transform,
 }
 
+#[derive(Component)]
+pub struct Highlight;
+
 impl Player {
     pub fn new(transform: Transform) -> Self {
         Self { transform }
@@ -33,17 +36,29 @@ pub fn spawn_player(
     let animation_indices = AnimationIndices { first: 0, last: 2 };
     let player_transform = Transform::from_xyz(0.0, 0.0, 1.0);
 
-    commands.spawn((
-        SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
-            sprite: TextureAtlasSprite::new(animation_indices.first),
+    let hightlight = commands
+        .spawn(SpriteBundle {
+            texture: asset_server.load("highlight.png"),
             transform: player_transform,
+            visibility: Visibility::Hidden,
             ..default()
-        },
-        animation_indices,
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-        Player::new(player_transform),
-    ));
+        })
+        .insert(Highlight)
+        .id();
+
+    commands
+        .spawn((
+            SpriteSheetBundle {
+                texture_atlas: texture_atlas_handle,
+                sprite: TextureAtlasSprite::new(animation_indices.first),
+                transform: player_transform,
+                ..default()
+            },
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            Player::new(player_transform),
+        ))
+        .add_child(hightlight);
 }
 
 pub fn player_movement(
