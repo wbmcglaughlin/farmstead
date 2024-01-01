@@ -20,7 +20,7 @@ fn main() {
         .add_plugins(TilemapPlugin)
         .add_systems(Startup, ui::camera::add_camera)
         .add_systems(Startup, map::tilemap::generate_map)
-        .add_systems(Startup, entities::player::spawn_player)
+        .add_systems(Update, entities::player::spawn_player)
         .add_systems(Update, ui::camera::movement)
         .add_systems(Update, entities::player::player_movement)
         .add_systems(Update, entities::player::move_to_target)

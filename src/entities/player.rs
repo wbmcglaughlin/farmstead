@@ -31,9 +31,14 @@ pub struct AnimationTimer(Timer);
 
 pub fn spawn_player(
     mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
+    if !keyboard_input.pressed(KeyCode::P) {
+        return;
+    }
+
     let texture_handle = asset_server.load("walk.png");
     let texture_atlas =
         TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1, None, None);
