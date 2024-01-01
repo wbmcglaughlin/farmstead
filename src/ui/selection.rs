@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct SelectionRectangle {
+pub struct EntitySelectionRectangle {
     pub start: Option<Vec2>,
     pub end: Option<Vec2>,
 }
 
-impl SelectionRectangle {
+impl EntitySelectionRectangle {
     pub fn new() -> Self {
         Self {
             start: None,
@@ -34,12 +34,16 @@ pub fn create_rect_sprite(mut commands: Commands) {
             transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
             ..default()
         },
-        SelectionRectangle::new(),
+        EntitySelectionRectangle::new(),
     ));
 }
 
 pub fn adjust_rect_visibility_and_size(
-    mut query: Query<(&mut Transform, &mut Visibility, &mut SelectionRectangle)>,
+    mut query: Query<(
+        &mut Transform,
+        &mut Visibility,
+        &mut EntitySelectionRectangle,
+    )>,
 ) {
     for (mut transform, mut visible, selection) in query.iter_mut() {
         if let Some(start) = selection.start {

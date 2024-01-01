@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::ui::selection::SelectionRectangle;
+use crate::ui::selection::EntitySelectionRectangle;
 
 use super::player::{Highlight, Player};
 
@@ -8,7 +8,7 @@ pub fn check_click_selection(
     mouse_input: Res<Input<MouseButton>>,
     mut player_entity: Query<(&mut Transform, &mut Player, &mut Children)>,
     mut highlight: Query<&mut Visibility, With<Highlight>>,
-    mut selections: Query<&mut SelectionRectangle>,
+    mut selections: Query<&mut EntitySelectionRectangle>,
     query: Query<(&GlobalTransform, &Camera)>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
 ) {
