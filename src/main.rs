@@ -30,11 +30,13 @@ fn main() {
         .add_systems(
             Update,
             (
+                ui::mode::switch_mode,
                 entities::player::spawn_player,
                 ui::camera::movement,
                 entities::player::player_movement,
                 ui::selection::adjust_rect_visibility_and_size,
                 entities::player::move_to_target,
+                entities::click::click_drag_handler,
                 entities::click::check_click_selection,
             ),
         )

@@ -1,9 +1,18 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(PartialEq, Eq, Debug)]
+pub enum SelectionStatus {
+    Ready,
+    Clicked,
+    Selecting,
+    Selected,
+}
+
+#[derive(Component, Debug)]
 pub struct EntitySelectionRectangle {
     pub start: Option<Vec2>,
     pub end: Option<Vec2>,
+    pub status: SelectionStatus,
 }
 
 impl EntitySelectionRectangle {
@@ -11,6 +20,7 @@ impl EntitySelectionRectangle {
         Self {
             start: None,
             end: None,
+            status: SelectionStatus::Ready,
         }
     }
 
