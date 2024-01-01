@@ -1,16 +1,22 @@
 use bevy::prelude::*;
 
+const PLAYER_SPEED: f32 = 30.0;
+
 #[derive(Component)]
 pub struct Player {
-    transform: Transform,
+    pub selected: bool,
+    pub target: Option<Vec2>,
 }
 
 #[derive(Component)]
 pub struct Highlight;
 
 impl Player {
-    pub fn new(transform: Transform) -> Self {
-        Self { transform }
+    pub fn new() -> Self {
+        Self {
+            selected: false,
+            target: None,
+        }
     }
 }
 
@@ -56,7 +62,7 @@ pub fn spawn_player(
             },
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-            Player::new(player_transform),
+            Player::new(),
         ))
         .add_child(hightlight);
 }
@@ -77,6 +83,41 @@ pub fn player_movement(
             } else {
                 sprite.index + 1
             };
+        }
+    }
+}
+
+pub fn move_to_target(time: Res<Time>, mut player_entity: Query<(&mut Transform, &mut Player)>) {
+    for (mut transform, mut player) in player_entity.iter_mut() {
+        // Check if the player has a target position.
+        if let Some(t) = player.target {
+            // Find deltas.
+            let dt = time.delta().as_secs_f32();
+            let dx = t.x - transform.translation.x;
+            let dy = t.y - transform.translation.y;
+
+            // Get distance squared.
+            let distance_squared = dx.powf(2.0) + dy.powf(2.0);
+
+            // Angle to which player is going.
+            // TODO: will need some sort of pathfinding algoritm.
+            let angle = dy.atan2(dx);
+
+            // Get player transform if they were to move at the optimal speed.
+            let translation_x = PLAYER_SPEED * angle.cos() * dt;
+            let translation_y = PLAYER_SPEED * angle.sin() * dt;
+            let translation_distance_squared = translation_x.powf(2.0) + translation_y.powf(2.0);
+
+            // If the distance to the target is less than the current step, set the position and
+            // clear the target position.
+            if distance_squared < translation_distance_squared {
+                transform.translation.x = t.x;
+                transform.translation.y = t.y;
+                player.target = None;
+            } else {
+                transform.translation.x += translation_x;
+                transform.translation.y += translation_y;
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ fn main() {
         .add_systems(Startup, entities::player::spawn_player)
         .add_systems(Update, ui::camera::movement)
         .add_systems(Update, entities::player::player_movement)
+        .add_systems(Update, entities::player::move_to_target)
         .add_systems(Update, entities::click::check_click_selection)
         .run();
 }
