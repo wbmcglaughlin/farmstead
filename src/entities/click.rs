@@ -30,36 +30,51 @@ pub fn check_click_selection(
             }
 
             if mouse_input.just_released(MouseButton::Left) {
-                if let Some(start) = selection.start {
-                    if start.distance_squared(ray_pos) > 50.0 {
-                        selection.set_end(ray_pos);
-                        // TODO: Do logic for selection here.
-                        return;
-                    }
-                }
-
+                let selection_sqaure_size = selection.get_area();
                 for (transform, mut player, children) in player_entity.iter_mut() {
                     // Iterate over the children, there should only be one currently.
                     for child in &children {
                         // Get the query element, this will throw an error if it doesnt contain a
                         // highlight, but there is only one.
                         if let Ok(mut vis) = highlight.get_mut(*child) {
-                            if *vis != Visibility::Visible {
-                                // TODO: need to handle this better. Hard coded currently.
-                                let distance_squared = (ray_pos.x - transform.translation.x)
-                                    .powf(2.0)
-                                    + (ray_pos.y - transform.translation.y).powf(2.0);
+                            // Check the players selection visibility, if the selection exists,
+                            // set the player target.
+                            if selection_sqaure_size.is_none()
+                                || selection_sqaure_size.unwrap() < 10.0
+                            {
+                                if *vis != Visibility::Visible {
+                                    // TODO: need to handle this better. Hard coded currently.
+                                    let distance_squared = (ray_pos.x - transform.translation.x)
+                                        .powf(2.0)
+                                        + (ray_pos.y - transform.translation.y).powf(2.0);
 
-                                if distance_squared < 9.0 {
-                                    *vis = Visibility::Visible;
+                                    if distance_squared < 9.0 {
+                                        *vis = Visibility::Visible;
+                                    }
+                                } else {
+                                    player.target = Some(Vec2::new(ray_pos.x, ray_pos.y));
+                                    *vis = Visibility::Hidden;
                                 }
                             } else {
-                                player.target = Some(Vec2::new(ray_pos.x, ray_pos.y));
-                                *vis = Visibility::Hidden;
+                                let selection_start = selection.start.unwrap();
+                                let selection_end = selection.end.unwrap();
+                                let player_position =
+                                    Vec2::new(transform.translation.x, transform.translation.y);
+
+                                if player_position.x >= selection_start.x.min(selection_end.x)
+                                    && player_position.x <= selection_start.x.max(selection_end.x)
+                                    && player_position.y >= selection_start.y.min(selection_end.y)
+                                    && player_position.y <= selection_start.y.max(selection_end.y)
+                                {
+                                    *vis = Visibility::Visible;
+                                }
                             }
                         }
                     }
                 }
+
+                selection.start = None;
+                selection.end = None;
             }
         }
     }

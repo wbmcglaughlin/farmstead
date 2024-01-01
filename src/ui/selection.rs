@@ -21,13 +21,23 @@ impl EntitySelectionRectangle {
     pub fn set_end(&mut self, end: Vec2) {
         self.end = Some(end);
     }
+
+    pub fn get_area(&self) -> Option<f32> {
+        if self.start.is_some() && self.end.is_some() {
+            let dim = self.start.unwrap() - self.end.unwrap();
+
+            Some((dim.x * dim.y).abs())
+        } else {
+            None
+        }
+    }
 }
 
 pub fn create_rect_sprite(mut commands: Commands) {
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {
-                color: Color::rgba(0.0, 0.0, 0.0, 0.2),
+                color: Color::rgba(1.0, 1.0, 1.0, 0.2),
                 custom_size: Some(Vec2::new(1.0, 1.0)),
                 ..default()
             },
