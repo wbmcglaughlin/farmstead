@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use entities::click::SelectionRectangle;
 mod entities;
 mod map;
 mod ui;
@@ -18,6 +19,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
+        .insert_resource(SelectionRectangle::new())
         .add_systems(Startup, ui::camera::add_camera)
         .add_systems(Startup, map::tilemap::generate_map)
         .add_systems(Update, entities::player::spawn_player)
