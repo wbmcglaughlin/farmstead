@@ -1,11 +1,15 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::ui::selection::{EntitySelectionRectangle, SelectionStatus};
+use crate::ui::{
+    mode::SelectionMode,
+    selection::{EntitySelectionRectangle, SelectionStatus},
+};
 
 use super::player::{Highlight, Player};
 
 pub fn click_drag_handler(
     mouse_input: Res<Input<MouseButton>>,
+    mode: Res<SelectionMode>,
     mut selections: Query<&mut EntitySelectionRectangle>,
     query: Query<(&GlobalTransform, &Camera)>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
@@ -17,13 +21,33 @@ pub fn click_drag_handler(
             .viewport_to_world_2d(global_transform, position)
             .unwrap();
 
+        let bottom_right_pos = match *mode {
+            SelectionMode::Selection => ray_pos,
+            SelectionMode::Tiling => {
+                let tile_size = 16.0; // Assuming tile size is 16x16
+                let x = (ray_pos.x / tile_size).ceil() * tile_size;
+                let y = (ray_pos.y / tile_size).floor() * tile_size;
+                Vec2::new(x, y)
+            }
+        };
+
+        let top_left_pos = match *mode {
+            SelectionMode::Selection => ray_pos,
+            SelectionMode::Tiling => {
+                let tile_size = 16.0; // Assuming tile size is 16x16
+                let x = (ray_pos.x / tile_size).floor() * tile_size;
+                let y = (ray_pos.y / tile_size).ceil() * tile_size;
+                Vec2::new(x, y)
+            }
+        };
+
         for mut selection in selections.iter_mut() {
             if mouse_input.just_pressed(MouseButton::Left) {
-                selection.set_start(ray_pos);
+                selection.set_start(top_left_pos);
                 selection.end = None;
                 selection.status = SelectionStatus::Clicked;
             } else if mouse_input.pressed(MouseButton::Left) {
-                selection.set_end(ray_pos);
+                selection.set_end(bottom_right_pos);
                 selection.status = SelectionStatus::Selecting;
             } else if mouse_input.just_released(MouseButton::Left) {
                 selection.status = SelectionStatus::Selected;
