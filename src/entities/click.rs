@@ -115,39 +115,53 @@ pub fn check_entities_selection(
 pub fn check_tiles_selection(
     mut tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize)>,
     mut tile_query: Query<&mut TileTextureIndex>,
-    mut selections: Query<&mut EntitySelectionRectangle>,
+    mut selections: Query<&EntitySelectionRectangle>,
 ) {
     for selection in selections.iter_mut() {
         if selection.status == SelectionStatus::Selected {
             for (tile_storage, tilemap_size, map_size) in tilemap_query.iter_mut() {
-                let halfborder = Vec2::new(
-                    tilemap_size.x * map_size.x as f32,
-                    tilemap_size.y * map_size.y as f32,
-                ) / 2.0;
-                let selection_start = (selection.start.unwrap() + halfborder) / tilemap_size.x;
-                let selection_end = (selection.end.unwrap() + halfborder) / tilemap_size.y;
+                let tile_positions = get_tile_positions(tilemap_size, map_size, selection);
 
-                let start_x = selection_start.x.min(selection_end.x) as usize;
-                let end_x = selection_start.x.max(selection_end.x) as usize;
-                let start_y = selection_start.y.min(selection_end.y) as usize;
-                let end_y = selection_start.y.max(selection_end.y) as usize;
-
-                for x in start_x..=end_x - 1 {
-                    for y in start_y..=end_y - 1 {
-                        let tile_pos = TilePos {
-                            x: x as u32,
-                            y: y as u32,
-                        };
-                        if let Some(tile) = tile_storage.get(&tile_pos) {
-                            if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
-                                tile_texture.0 = Tiles::Farmland.get_texture_index();
-                            }
+                for tile_pos in tile_positions.iter() {
+                    if let Some(tile) = tile_storage.get(tile_pos) {
+                        if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
+                            tile_texture.0 = Tiles::Farmland.get_texture_index();
                         }
                     }
                 }
             }
         }
     }
+}
+
+fn get_tile_positions(
+    tilemap_size: &TilemapTileSize,
+    map_size: &TilemapSize,
+    selection: &EntitySelectionRectangle,
+) -> Vec<TilePos> {
+    let halfborder = Vec2::new(
+        tilemap_size.x * map_size.x as f32,
+        tilemap_size.y * map_size.y as f32,
+    ) / 2.0;
+    let selection_start = (selection.start.unwrap() + halfborder) / tilemap_size.x;
+    let selection_end = (selection.end.unwrap() + halfborder) / tilemap_size.y;
+
+    let start_x = selection_start.x.min(selection_end.x) as usize;
+    let end_x = selection_start.x.max(selection_end.x) as usize;
+    let start_y = selection_start.y.min(selection_end.y) as usize;
+    let end_y = selection_start.y.max(selection_end.y) as usize;
+
+    let mut tile_positions = Vec::new();
+    for x in start_x..=end_x - 1 {
+        for y in start_y..=end_y - 1 {
+            let tile_pos = TilePos {
+                x: x as u32,
+                y: y as u32,
+            };
+            tile_positions.push(tile_pos);
+        }
+    }
+    tile_positions
 }
 
 pub fn check_intersection(
