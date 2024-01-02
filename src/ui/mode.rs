@@ -1,16 +1,21 @@
 use bevy::prelude::*;
 
-#[derive(Resource, Debug)]
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum SelectionMode {
+    #[default]
     Selection,
     Tiling,
 }
 
-pub fn switch_mode(input: Res<Input<KeyCode>>, mut mode: ResMut<SelectionMode>) {
+pub fn switch_mode(
+    input: Res<Input<KeyCode>>,
+    state: Res<State<SelectionMode>>,
+    mut next_state: ResMut<NextState<SelectionMode>>,
+) {
     if input.just_pressed(KeyCode::M) {
-        *mode = match *mode {
-            SelectionMode::Selection => SelectionMode::Tiling,
-            SelectionMode::Tiling => SelectionMode::Selection,
+        match *state.get() {
+            SelectionMode::Selection => next_state.set(SelectionMode::Tiling),
+            SelectionMode::Tiling => next_state.set(SelectionMode::Selection),
         };
     }
 }

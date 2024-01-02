@@ -18,7 +18,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
-        .insert_resource(ui::mode::SelectionMode::Selection)
+        .add_state::<ui::mode::SelectionMode>()
         .add_systems(
             Startup,
             (
@@ -37,8 +37,17 @@ fn main() {
                 ui::selection::adjust_rect_visibility_and_size,
                 entities::player::move_to_target,
                 entities::click::click_drag_handler,
-                entities::click::check_click_selection,
             ),
+        )
+        .add_systems(
+            Update,
+            entities::click::check_entities_selection
+                .run_if(in_state(ui::mode::SelectionMode::Selection)),
+        )
+        .add_systems(
+            Update,
+            entities::click::check_tiles_selection
+                .run_if(in_state(ui::mode::SelectionMode::Tiling)),
         )
         .run();
 }
