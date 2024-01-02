@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 mod entities;
+mod jobs;
 mod map;
 mod ui;
 
