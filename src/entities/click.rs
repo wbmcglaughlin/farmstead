@@ -1,5 +1,5 @@
 use crate::{
-    jobs::job::{Job, JobType, Jobs},
+    jobs::job::{Job, JobResult, JobType, Jobs},
     map::tile::Tiles,
     ui::{
         mode::SelectionMode,
@@ -135,6 +135,7 @@ pub fn check_tiles_selection(
                             tool: Tool {
                                 tool_type: ToolType::Hoe,
                             },
+                            result: JobResult::Tile(Tiles::Farmland),
                         })
                     }
                 }

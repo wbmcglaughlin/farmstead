@@ -16,6 +16,7 @@ pub enum JobResult {
 pub struct Job {
     pub jtype: JobType,
     pub tool: Tool,
+    pub result: JobResult,
 }
 
 #[derive(Component)]
