@@ -7,7 +7,6 @@ pub fn add_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-#[allow(dead_code)]
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
