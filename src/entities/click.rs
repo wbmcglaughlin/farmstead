@@ -1,6 +1,6 @@
 use crate::{
     jobs::job::{Job, JobResult, JobType, Jobs},
-    map::tile::Tiles,
+    map::{indexing::xy_i, tile::Tiles},
     ui::{
         mode::SelectionMode,
         selection::{EntitySelectionRectangle, SelectionStatus},
@@ -130,7 +130,7 @@ pub fn check_tiles_selection(
             for tile_pos in tile_positions.iter() {
                 if let Some(tile) = tile_storage.get(tile_pos) {
                     if tile_query.get_mut(tile).is_ok() {
-                        jobs.in_queue.push(Job {
+                        jobs.in_queue[xy_i(map_size, tile_pos.x, tile_pos.y)] = Some(Job {
                             jtype: JobType::Tile(*tile_pos),
                             tool: Tool {
                                 tool_type: ToolType::Hoe,

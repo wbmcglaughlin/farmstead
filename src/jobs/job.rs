@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::tiles::TilePos;
+use bevy_ecs_tilemap::{map::TilemapSize, tiles::TilePos};
 
 use crate::{entities::material::Material, entities::tool::Tool, map::tile::Tiles};
 
@@ -21,17 +21,20 @@ pub struct Job {
 
 #[derive(Component)]
 pub struct Jobs {
-    pub in_queue: Vec<Job>,
+    pub in_queue: Vec<Option<Job>>,
 }
 
 impl Jobs {
-    pub fn new() -> Self {
+    pub fn new_from_tilemap_size(tilemap_size: &TilemapSize) -> Self {
         Jobs {
-            in_queue: Vec::new(),
+            in_queue: (0..(tilemap_size.x * tilemap_size.y))
+                .map(|_| None)
+                .collect(),
         }
     }
 }
 
-pub fn generate_job_queue(mut commands: Commands) {
-    commands.spawn(Jobs::new());
+pub fn generate_job_queue(mut commands: Commands, mut tilemap_query: Query<&TilemapSize>) {
+    let tilemap_size = tilemap_query.single();
+    commands.spawn(Jobs::new_from_tilemap_size(tilemap_size));
 }

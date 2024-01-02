@@ -26,18 +26,18 @@ fn main() {
                 ui::camera::add_camera,
                 map::tilemap::generate_map,
                 ui::selection::create_rect_sprite,
-                jobs::job::generate_job_queue,
             ),
         )
+        .add_systems(PostStartup, jobs::job::generate_job_queue)
         .add_systems(
             Update,
             (
-                ui::mode::switch_mode,
-                entities::player::spawn_player,
                 ui::camera::movement,
-                entities::player::player_movement,
+                ui::mode::switch_mode,
                 ui::selection::adjust_rect_visibility_and_size,
+                entities::player::spawn_player,
                 entities::player::move_to_target,
+                entities::player::player_movement,
                 entities::click::click_drag_handler,
             ),
         )
