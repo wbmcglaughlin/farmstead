@@ -32,6 +32,12 @@ impl EntitySelectionRectangle {
         self.end = Some(end);
     }
 
+    pub fn reset(&mut self) {
+        self.start = None;
+        self.end = None;
+        self.status = SelectionStatus::Ready;
+    }
+
     pub fn get_area(&self) -> Option<f32> {
         if self.start.is_some() && self.end.is_some() {
             let dim = self.start.unwrap() - self.end.unwrap();

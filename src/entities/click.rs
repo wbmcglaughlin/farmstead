@@ -1,4 +1,5 @@
 use crate::{
+    jobs::job::{Job, JobType, Jobs},
     map::tile::Tiles,
     ui::{
         mode::SelectionMode,
@@ -8,7 +9,10 @@ use crate::{
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_ecs_tilemap::prelude::*;
 
-use super::player::{Highlight, Player};
+use super::{
+    player::{Highlight, Player},
+    tool::{Tool, ToolType},
+};
 
 pub fn click_drag_handler(
     mouse_input: Res<Input<MouseButton>>,
@@ -106,31 +110,37 @@ pub fn check_entities_selection(
                 }
             }
         }
-        selection.status = SelectionStatus::Ready;
-        selection.start = None;
-        selection.end = None;
+        selection.reset();
     }
 }
 
 pub fn check_tiles_selection(
+    mut job_queue: Query<&mut Jobs>,
     mut tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize)>,
     mut tile_query: Query<&mut TileTextureIndex>,
-    mut selections: Query<&EntitySelectionRectangle>,
+    mut selections: Query<&mut EntitySelectionRectangle>,
 ) {
-    for selection in selections.iter_mut() {
-        if selection.status == SelectionStatus::Selected {
-            for (tile_storage, tilemap_size, map_size) in tilemap_query.iter_mut() {
-                let tile_positions = get_tile_positions(tilemap_size, map_size, selection);
-
-                for tile_pos in tile_positions.iter() {
-                    if let Some(tile) = tile_storage.get(tile_pos) {
-                        if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
-                            tile_texture.0 = Tiles::Farmland.get_texture_index();
-                        }
+    for mut selection in selections.iter_mut() {
+        if selection.status != SelectionStatus::Selected || selection.get_area().is_none() {
+            continue;
+        }
+        for (tile_storage, tilemap_size, map_size) in tilemap_query.iter_mut() {
+            let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
+            let mut jobs = job_queue.single_mut();
+            for tile_pos in tile_positions.iter() {
+                if let Some(tile) = tile_storage.get(tile_pos) {
+                    if tile_query.get_mut(tile).is_ok() {
+                        jobs.in_queue.push(Job {
+                            jtype: JobType::Tile(*tile_pos),
+                            tool: Tool {
+                                tool_type: ToolType::Hoe,
+                            },
+                        })
                     }
                 }
             }
         }
+        selection.reset();
     }
 }
 

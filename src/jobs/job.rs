@@ -1,26 +1,36 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::tiles::TilePos;
 
+use crate::{entities::material::Material, entities::tool::Tool, map::tile::Tiles};
+
 pub enum JobType {
     Tile(TilePos),
     EntityId(Entity),
 }
 
+pub enum JobResult {
+    Tile(Tiles),
+    EntityId(Vec<Material>),
+}
+
 pub struct Job {
-    jtype: JobType,
-    tool: Tool,
-    skill: Skill,
-    materials: Option<MaterialList>,
+    pub jtype: JobType,
+    pub tool: Tool,
 }
 
 #[derive(Component)]
 pub struct Jobs {
-    in_queue: Vec<Job>,
+    pub in_queue: Vec<Job>,
 }
 
-// Jobs...
-// Tile based jobs.
-// - tool / skill / tile pos / materials
+impl Jobs {
+    pub fn new() -> Self {
+        Jobs {
+            in_queue: Vec::new(),
+        }
+    }
+}
 
-// Entity based jobs.
-// - tool / skill / entity id / -
+pub fn generate_job_queue(mut commands: Commands) {
+    commands.spawn(Jobs::new());
+}

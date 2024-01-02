@@ -6,5 +6,7 @@ pub enum ToolType {
     Pickaxe,
 }
 
-#[Component]
-pub struct Tool;
+#[derive(Component)]
+pub struct Tool {
+    pub tool_type: ToolType,
+}
