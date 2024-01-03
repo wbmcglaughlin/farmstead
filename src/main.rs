@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use entities::player::{PlayerSpawnTimer, PLAYER_SPAWN_TIMER_COOLDOWN};
 mod entities;
 mod jobs;
 mod map;
@@ -20,6 +21,10 @@ fn main() {
         )
         .add_plugins(TilemapPlugin)
         .add_state::<ui::mode::SelectionMode>()
+        .insert_resource(PlayerSpawnTimer(Timer::from_seconds(
+            PLAYER_SPAWN_TIMER_COOLDOWN,
+            TimerMode::Repeating,
+        )))
         .add_systems(
             Startup,
             (
