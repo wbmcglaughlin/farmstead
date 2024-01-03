@@ -8,8 +8,7 @@ pub fn generate_perlin_noise_map(
     lacunarity: f64,
     seed: u32,
 ) -> Vec<Vec<f64>> {
-    let perlin = Perlin::new(1);
-    perlin.set_seed(seed);
+    let perlin = Perlin::new(1).set_seed(seed);
 
     // TODO: this should be used...
     let mut scale = 1.0;
