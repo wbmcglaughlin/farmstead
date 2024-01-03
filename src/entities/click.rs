@@ -1,5 +1,5 @@
 use crate::{
-    jobs::job::{Job, JobResult, JobType, Jobs, TileJob},
+    jobs::job::{Job, JobType, Jobs, TileJob},
     map::{tile::Tiles, tilemap::JobLayerTileMap},
     ui::{
         mode::SelectionMode,
