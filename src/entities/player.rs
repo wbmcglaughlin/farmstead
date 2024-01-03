@@ -192,6 +192,7 @@ pub fn execute_job(
                             jobtile_storage.get(&tile_job.tilepos),
                             tile_storage.get(&tile_job.tilepos),
                         ) {
+                            // TODO: if either of these two Ok's fall through unexpected behaviour will occur.
                             if let Ok(mut job_tile_texture) = tile_query.get_mut(job_tile) {
                                 job_tile_texture.0 = 0;
                             }
