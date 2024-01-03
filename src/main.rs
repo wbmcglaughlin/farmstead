@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 mod entities;
+mod jobs;
 mod map;
 mod ui;
 
@@ -18,14 +19,38 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
-        .add_systems(Startup, ui::camera::add_camera)
-        .add_systems(Startup, map::tilemap::generate_map)
-        .add_systems(Startup, ui::selection::create_rect_sprite)
-        .add_systems(Update, entities::player::spawn_player)
-        .add_systems(Update, ui::camera::movement)
-        .add_systems(Update, entities::player::player_movement)
-        .add_systems(Update, ui::selection::adjust_rect_visibility_and_size)
-        .add_systems(Update, entities::player::move_to_target)
-        .add_systems(Update, entities::click::check_click_selection)
+        .add_state::<ui::mode::SelectionMode>()
+        .add_systems(
+            Startup,
+            (
+                ui::camera::add_camera,
+                map::tilemap::generate_map,
+                ui::selection::create_rect_sprite,
+            ),
+        )
+        .add_systems(PostStartup, jobs::job::generate_job_queue)
+        .add_systems(
+            Update,
+            (
+                ui::camera::movement,
+                ui::mode::switch_mode,
+                ui::selection::adjust_rect_visibility_and_size,
+                entities::player::spawn_player,
+                entities::player::move_to_target,
+                entities::player::player_movement,
+                entities::player::search_for_job,
+                entities::click::click_drag_handler,
+            ),
+        )
+        .add_systems(
+            Update,
+            entities::click::check_entities_selection
+                .run_if(in_state(ui::mode::SelectionMode::Selection)),
+        )
+        .add_systems(
+            Update,
+            entities::click::check_tiles_selection
+                .run_if(in_state(ui::mode::SelectionMode::Tiling)),
+        )
         .run();
 }

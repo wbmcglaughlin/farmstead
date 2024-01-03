@@ -1,13 +1,22 @@
+use crate::{
+    jobs::job::{Job, JobResult, JobType, Jobs},
+    map::{tile::Tiles, tilemap::JobLayerTileMap},
+    ui::{
+        mode::SelectionMode,
+        selection::{EntitySelectionRectangle, SelectionStatus},
+    },
+};
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_ecs_tilemap::prelude::*;
 
-use crate::ui::selection::EntitySelectionRectangle;
+use super::{
+    player::{Highlight, Player},
+    tool::{Tool, ToolType},
+};
 
-use super::player::{Highlight, Player};
-
-pub fn check_click_selection(
+pub fn click_drag_handler(
     mouse_input: Res<Input<MouseButton>>,
-    mut player_entity: Query<(&mut Transform, &mut Player, &mut Children)>,
-    mut highlight: Query<&mut Visibility, With<Highlight>>,
+    mode: Res<State<SelectionMode>>,
     mut selections: Query<&mut EntitySelectionRectangle>,
     query: Query<(&GlobalTransform, &Camera)>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
@@ -19,63 +28,160 @@ pub fn check_click_selection(
             .viewport_to_world_2d(global_transform, position)
             .unwrap();
 
+        let bottom_right_pos = match *mode.get() {
+            SelectionMode::Selection => ray_pos,
+            SelectionMode::Tiling => {
+                let tile_size = 16.0; // Assuming tile size is 16x16
+                let x = (ray_pos.x / tile_size).ceil() * tile_size;
+                let y = (ray_pos.y / tile_size).floor() * tile_size;
+                Vec2::new(x, y)
+            }
+        };
+
+        let top_left_pos = match *mode.get() {
+            SelectionMode::Selection => ray_pos,
+            SelectionMode::Tiling => {
+                let tile_size = 16.0; // Assuming tile size is 16x16
+                let x = (ray_pos.x / tile_size).floor() * tile_size;
+                let y = (ray_pos.y / tile_size).ceil() * tile_size;
+                Vec2::new(x, y)
+            }
+        };
+
         for mut selection in selections.iter_mut() {
             if mouse_input.just_pressed(MouseButton::Left) {
-                selection.set_start(ray_pos);
+                selection.set_start(top_left_pos);
                 selection.end = None;
-            }
-
-            if mouse_input.pressed(MouseButton::Left) {
-                selection.set_end(ray_pos);
-            }
-
-            if mouse_input.just_released(MouseButton::Left) {
-                let selection_sqaure_size = selection.get_area();
-                for (transform, mut player, children) in player_entity.iter_mut() {
-                    // Iterate over the children, there should only be one currently.
-                    for child in &children {
-                        // Get the query element, this will throw an error if it doesnt contain a
-                        // highlight, but there is only one.
-                        if let Ok(mut vis) = highlight.get_mut(*child) {
-                            // Check the players selection visibility, if the selection exists,
-                            // set the player target.
-                            if selection_sqaure_size.is_none()
-                                || selection_sqaure_size.unwrap() < 10.0
-                            {
-                                if *vis != Visibility::Visible {
-                                    // TODO: need to handle this better. Hard coded currently.
-                                    let distance_squared = (ray_pos.x - transform.translation.x)
-                                        .powf(2.0)
-                                        + (ray_pos.y - transform.translation.y).powf(2.0);
-
-                                    if distance_squared < 9.0 {
-                                        *vis = Visibility::Visible;
-                                    }
-                                } else {
-                                    player.target = Some(Vec2::new(ray_pos.x, ray_pos.y));
-                                    *vis = Visibility::Hidden;
-                                }
-                            } else {
-                                let selection_start = selection.start.unwrap();
-                                let selection_end = selection.end.unwrap();
-                                let player_position =
-                                    Vec2::new(transform.translation.x, transform.translation.y);
-
-                                if player_position.x >= selection_start.x.min(selection_end.x)
-                                    && player_position.x <= selection_start.x.max(selection_end.x)
-                                    && player_position.y >= selection_start.y.min(selection_end.y)
-                                    && player_position.y <= selection_start.y.max(selection_end.y)
-                                {
-                                    *vis = Visibility::Visible;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                selection.start = None;
-                selection.end = None;
+                selection.status = SelectionStatus::Clicked;
+            } else if mouse_input.pressed(MouseButton::Left) {
+                selection.set_end(bottom_right_pos);
+                selection.status = SelectionStatus::Selecting;
+            } else if mouse_input.just_released(MouseButton::Left) {
+                selection.status = SelectionStatus::Selected;
             }
         }
     }
+}
+
+pub fn check_entities_selection(
+    mut player_entity: Query<(&mut Transform, &mut Player, &mut Children)>,
+    mut highlight: Query<&mut Visibility, With<Highlight>>,
+    mut selections: Query<&mut EntitySelectionRectangle>,
+) {
+    for mut selection in selections.iter_mut() {
+        if selection.status != SelectionStatus::Selected {
+            continue;
+        }
+        let selection_sqaure_size = selection.get_area();
+        for (transform, mut player, children) in player_entity.iter_mut() {
+            // Iterate over the children, there should only be one currently.
+            for child in &children {
+                // Get the query element, this will throw an error if it doesnt contain a
+                // highlight, but there is only one.
+                if let Ok(mut vis) = highlight.get_mut(*child) {
+                    // Check the players selection visibility, if the selection exists,
+                    // set the player target.
+                    if selection_sqaure_size.is_none() || selection_sqaure_size.unwrap() < 10.0 {
+                        if let Some(start) = selection.start {
+                            if *vis != Visibility::Visible {
+                                // TODO: need to handle this better. Hard coded currently.
+                                let distance_squared = (start.x - transform.translation.x)
+                                    .powf(2.0)
+                                    + (start.y - transform.translation.y).powf(2.0);
+
+                                if distance_squared < 9.0 {
+                                    *vis = Visibility::Visible;
+                                }
+                            } else {
+                                player.target = Some(Vec2::new(start.x, start.y));
+                                *vis = Visibility::Hidden;
+                            }
+                        }
+                    } else {
+                        let selection_start = selection.start.unwrap();
+                        let selection_end = selection.end.unwrap();
+                        let player_position =
+                            Vec2::new(transform.translation.x, transform.translation.y);
+
+                        if check_intersection(player_position, selection_start, selection_end) {
+                            *vis = Visibility::Visible;
+                        }
+                    }
+                }
+            }
+        }
+        selection.reset();
+    }
+}
+
+pub fn check_tiles_selection(
+    mut job_queue: Query<&mut Jobs>,
+    tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
+    mut tile_query: Query<&mut TileTextureIndex>,
+    mut selections: Query<&mut EntitySelectionRectangle>,
+) {
+    for mut selection in selections.iter_mut() {
+        if selection.status != SelectionStatus::Selected || selection.get_area().is_none() {
+            continue;
+        }
+        let (tile_storage, tilemap_size, map_size) = tilemap_query.single();
+        let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
+        let mut jobs = job_queue.single_mut();
+        for tile_pos in tile_positions.iter() {
+            if let Some(tile) = tile_storage.get(tile_pos) {
+                if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
+                    let tool_type = ToolType::Hoe;
+                    jobs.in_queue.push(Job {
+                        jtype: JobType::Tile(*tile_pos),
+                        tool: Tool { tool_type },
+                        result: JobResult::Tile(Tiles::Farmland),
+                    });
+                    tile_texture.0 = tool_type.get_texture_index();
+                }
+            }
+        }
+
+        selection.reset();
+    }
+}
+
+fn get_tile_positions(
+    tilemap_size: &TilemapTileSize,
+    map_size: &TilemapSize,
+    selection: &EntitySelectionRectangle,
+) -> Vec<TilePos> {
+    let halfborder = Vec2::new(
+        tilemap_size.x * map_size.x as f32,
+        tilemap_size.y * map_size.y as f32,
+    ) / 2.0;
+    let selection_start = (selection.start.unwrap() + halfborder) / tilemap_size.x;
+    let selection_end = (selection.end.unwrap() + halfborder) / tilemap_size.y;
+
+    let start_x = selection_start.x.min(selection_end.x) as usize;
+    let end_x = selection_start.x.max(selection_end.x) as usize;
+    let start_y = selection_start.y.min(selection_end.y) as usize;
+    let end_y = selection_start.y.max(selection_end.y) as usize;
+
+    let mut tile_positions = Vec::new();
+    for x in start_x..=end_x - 1 {
+        for y in start_y..=end_y - 1 {
+            let tile_pos = TilePos {
+                x: x as u32,
+                y: y as u32,
+            };
+            tile_positions.push(tile_pos);
+        }
+    }
+    tile_positions
+}
+
+pub fn check_intersection(
+    player_position: Vec2,
+    selection_start: Vec2,
+    selection_end: Vec2,
+) -> bool {
+    player_position.x >= selection_start.x.min(selection_end.x)
+        && player_position.x <= selection_start.x.max(selection_end.x)
+        && player_position.y >= selection_start.y.min(selection_end.y)
+        && player_position.y <= selection_start.y.max(selection_end.y)
 }

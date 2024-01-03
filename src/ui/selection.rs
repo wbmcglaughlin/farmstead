@@ -1,9 +1,18 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(PartialEq, Eq, Debug)]
+pub enum SelectionStatus {
+    Ready,
+    Clicked,
+    Selecting,
+    Selected,
+}
+
+#[derive(Component, Debug)]
 pub struct EntitySelectionRectangle {
     pub start: Option<Vec2>,
     pub end: Option<Vec2>,
+    pub status: SelectionStatus,
 }
 
 impl EntitySelectionRectangle {
@@ -11,6 +20,7 @@ impl EntitySelectionRectangle {
         Self {
             start: None,
             end: None,
+            status: SelectionStatus::Ready,
         }
     }
 
@@ -20,6 +30,12 @@ impl EntitySelectionRectangle {
 
     pub fn set_end(&mut self, end: Vec2) {
         self.end = Some(end);
+    }
+
+    pub fn reset(&mut self) {
+        self.start = None;
+        self.end = None;
+        self.status = SelectionStatus::Ready;
     }
 
     pub fn get_area(&self) -> Option<f32> {

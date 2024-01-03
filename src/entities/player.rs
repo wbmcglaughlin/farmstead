@@ -1,4 +1,10 @@
 use bevy::prelude::*;
+use bevy_ecs_tilemap::map::{TilemapSize, TilemapTileSize};
+
+use crate::{
+    jobs::job::{self, Job, Jobs},
+    map::tilemap::JobLayerTileMap,
+};
 
 const PLAYER_SPEED: f32 = 30.0;
 
@@ -6,6 +12,7 @@ const PLAYER_SPEED: f32 = 30.0;
 pub struct Player {
     pub selected: bool,
     pub target: Option<Vec2>,
+    pub job: Option<Job>,
 }
 
 #[derive(Component)]
@@ -16,6 +23,7 @@ impl Player {
         Self {
             selected: false,
             target: None,
+            job: None,
         }
     }
 }
@@ -123,6 +131,42 @@ pub fn move_to_target(time: Res<Time>, mut player_entity: Query<(&mut Transform,
                 transform.translation.x += translation_x;
                 transform.translation.y += translation_y;
             }
+        }
+    }
+}
+
+pub fn search_for_job(
+    mut player_entity: Query<&mut Player>,
+    mut jobs_query: Query<&mut Jobs>,
+    tilemap_query: Query<(&TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
+) {
+    let jobs: &mut Jobs = &mut jobs_query.single_mut();
+    let (tilemap_size, map_size) = tilemap_query.single();
+    let halfborder = Vec2::new(
+        tilemap_size.x * map_size.x as f32,
+        tilemap_size.y * map_size.y as f32,
+    ) / 2.0;
+    for mut player in player_entity.iter_mut() {
+        // If the player has a target, dont try and get a job.
+        if player.target.is_some() || player.job.is_some() {
+            continue;
+        }
+
+        if jobs.in_queue.is_empty() {
+            return;
+        }
+
+        match jobs.in_queue[0].jtype {
+            job::JobType::Tile(pos) => {
+                dbg!(pos);
+                player.target = Some(Vec2::new(
+                    pos.x as f32 * 16.0 - halfborder.x,
+                    pos.y as f32 * 16.0 - halfborder.y,
+                ));
+
+                player.job = Some(jobs.in_queue.remove(0));
+            }
+            job::JobType::EntityId(_) => todo!(),
         }
     }
 }

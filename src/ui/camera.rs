@@ -7,7 +7,6 @@ pub fn add_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-#[allow(dead_code)]
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
@@ -21,23 +20,7 @@ pub fn movement(
     tilemap: Query<(&TilemapSize, &TilemapTileSize), (With<MainTileMap>, Without<Camera>)>,
 ) {
     for (global, mut transform, mut ortho, camera) in query.iter_mut() {
-        let mut direction = Vec3::ZERO;
-
-        if keyboard_input.pressed(KeyCode::A) {
-            direction -= Vec3::new(1.0, 0.0, 0.0);
-        }
-
-        if keyboard_input.pressed(KeyCode::D) {
-            direction += Vec3::new(1.0, 0.0, 0.0);
-        }
-
-        if keyboard_input.pressed(KeyCode::W) {
-            direction += Vec3::new(0.0, 1.0, 0.0);
-        }
-
-        if keyboard_input.pressed(KeyCode::S) {
-            direction -= Vec3::new(0.0, 1.0, 0.0);
-        }
+        let direction = direction_from_keys(&keyboard_input);
 
         if keyboard_input.pressed(KeyCode::Z) {
             ortho.scale += 0.1;
@@ -68,22 +51,47 @@ pub fn movement(
 
         // Clamp the direction of travel to one that would be restoring. Its better to do it this
         // way as there is no "snapping".
-        if ray.x < -tilemapwidth / 2.0 {
-            translation.x = 0_f32.max(translation.x);
-        }
-        if ray.x > tilemapwidth / 2.0 {
-            translation.x = 0_f32.min(translation.x);
-        }
-        if ray.y < -tilemapheight / 2.0 {
-            translation.y = 0_f32.max(translation.y);
-        }
-        if ray.y > tilemapheight / 2.0 {
-            translation.y = 0_f32.min(translation.y);
-        }
+        lock_translation(ray, tilemapwidth, tilemapheight, &mut translation);
 
         transform.translation += translation;
         // Important! We need to restore the Z values when moving the camera around.
         // Bevy has a specific camera setup and this can mess with how our layers are shown.
         transform.translation.z = z;
+    }
+}
+
+fn direction_from_keys(keyboard_input: &Res<'_, Input<KeyCode>>) -> Vec3 {
+    let mut direction = Vec3::ZERO;
+
+    if keyboard_input.pressed(KeyCode::A) {
+        direction -= Vec3::new(1.0, 0.0, 0.0);
+    }
+
+    if keyboard_input.pressed(KeyCode::D) {
+        direction += Vec3::new(1.0, 0.0, 0.0);
+    }
+
+    if keyboard_input.pressed(KeyCode::W) {
+        direction += Vec3::new(0.0, 1.0, 0.0);
+    }
+
+    if keyboard_input.pressed(KeyCode::S) {
+        direction -= Vec3::new(0.0, 1.0, 0.0);
+    }
+    direction
+}
+
+fn lock_translation(ray: Vec2, tilemapwidth: f32, tilemapheight: f32, translation: &mut Vec3) {
+    if ray.x < -tilemapwidth / 2.0 {
+        translation.x = 0_f32.max(translation.x);
+    }
+    if ray.x > tilemapwidth / 2.0 {
+        translation.x = 0_f32.min(translation.x);
+    }
+    if ray.y < -tilemapheight / 2.0 {
+        translation.y = 0_f32.max(translation.y);
+    }
+    if ray.y > tilemapheight / 2.0 {
+        translation.y = 0_f32.min(translation.y);
     }
 }
