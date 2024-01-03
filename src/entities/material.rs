@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 pub enum MaterialType {
-    Grass,
+    Wheat,
 }
 
 pub struct Material {
