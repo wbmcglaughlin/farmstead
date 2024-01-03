@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ToolType {
     Hoe,
     Pickaxe,
@@ -15,7 +15,7 @@ impl ToolType {
     }
 }
 
-#[derive(Component)]
+#[derive(Debug, Component)]
 pub struct Tool {
     pub tool_type: ToolType,
 }

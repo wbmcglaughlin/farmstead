@@ -3,20 +3,34 @@ use bevy_ecs_tilemap::tiles::TilePos;
 
 use crate::{entities::material::Material, entities::tool::Tool, map::tile::Tiles};
 
-pub enum JobType {
-    Tile(TilePos),
-    EntityId(Entity),
+#[derive(Debug)]
+pub struct TileJob {
+    pub tilepos: TilePos,
+    pub tile: Tiles,
 }
 
+#[derive(Debug)]
+pub struct EntityJob {
+    pub entity: Entity,
+    pub material: Vec<Material>,
+}
+
+#[derive(Debug)]
+pub enum JobType {
+    Tile(TileJob),
+    Entity(EntityJob),
+}
+
+#[derive(Debug)]
 pub enum JobResult {
     Tile(Tiles),
     EntityId(Vec<Material>),
 }
 
+#[derive(Debug)]
 pub struct Job {
     pub jtype: JobType,
     pub tool: Tool,
-    pub result: JobResult,
 }
 
 #[derive(Component)]

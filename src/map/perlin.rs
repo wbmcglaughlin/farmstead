@@ -23,8 +23,8 @@ pub fn generate_perlin_noise_map(
     let mut min_noise_height = f64::INFINITY;
 
     for o in 0..octaves {
-        for y in 0..height {
-            for x in 0..width {
+        for x in 0..width {
+            for y in 0..height {
                 let sample_x = x as f64 / scale;
                 let sample_y = y as f64 / scale;
 
@@ -39,10 +39,9 @@ pub fn generate_perlin_noise_map(
         scale *= lacunarity;
     }
 
-    for y in 0..height {
-        for x in 0..width {
-            noise_map[x][y] =
-                (noise_map[x][y] - min_noise_height) / (max_noise_height - min_noise_height);
+    for row in noise_map.iter_mut() {
+        for val in row.iter_mut() {
+            *val = (*val - min_noise_height) / (max_noise_height - min_noise_height);
         }
     }
 
