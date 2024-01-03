@@ -149,7 +149,6 @@ pub fn search_for_job(
         tilemap_size.x * map_size.x as f32,
         tilemap_size.y * map_size.y as f32,
     ) / 2.0;
-
     for mut player in player_entity.iter_mut() {
         // If the player has a target, dont try and get a job.
         if player.target.is_some() || player.job.is_some() {
@@ -162,14 +161,15 @@ pub fn search_for_job(
 
         match jobs.in_queue[0].jtype {
             job::JobType::Tile(pos) => {
+                dbg!(pos);
                 player.target = Some(Vec2::new(
                     pos.x as f32 * 16.0 - halfborder.x,
                     pos.y as f32 * 16.0 - halfborder.y,
                 ));
+
+                player.job = Some(jobs.in_queue.remove(0));
             }
             job::JobType::EntityId(_) => todo!(),
         }
-
-        player.job = jobs.in_queue.pop();
     }
 }
