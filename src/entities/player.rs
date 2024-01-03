@@ -158,7 +158,6 @@ pub fn search_for_job(
 
         match jobs.in_queue[0].jtype {
             job::JobType::Tile(pos) => {
-                dbg!(pos);
                 player.target = Some(Vec2::new(
                     pos.x as f32 * 16.0 - halfborder.x,
                     pos.y as f32 * 16.0 - halfborder.y,
