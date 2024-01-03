@@ -1,6 +1,6 @@
 use crate::{
     jobs::job::{Job, JobResult, JobType, Jobs},
-    map::{indexing::xy_i, tile::Tiles, tilemap::JobLayerTileMap},
+    map::{tile::Tiles, tilemap::JobLayerTileMap},
     ui::{
         mode::SelectionMode,
         selection::{EntitySelectionRectangle, SelectionStatus},

@@ -1,8 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::{
-    map::{TilemapSize, TilemapTileSize},
-    tiles::TileStorage,
-};
+use bevy_ecs_tilemap::map::{TilemapSize, TilemapTileSize};
 
 use crate::{
     jobs::job::{self, Job, Jobs},
