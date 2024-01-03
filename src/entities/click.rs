@@ -1,6 +1,6 @@
 use crate::{
     jobs::job::{Job, JobResult, JobType, Jobs},
-    map::{indexing::xy_i, tile::Tiles},
+    map::{indexing::xy_i, tile::Tiles, tilemap::JobLayerTileMap},
     ui::{
         mode::SelectionMode,
         selection::{EntitySelectionRectangle, SelectionStatus},
@@ -116,7 +116,7 @@ pub fn check_entities_selection(
 
 pub fn check_tiles_selection(
     mut job_queue: Query<&mut Jobs>,
-    mut tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize)>,
+    mut tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
     mut tile_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
 ) {
@@ -124,23 +124,23 @@ pub fn check_tiles_selection(
         if selection.status != SelectionStatus::Selected || selection.get_area().is_none() {
             continue;
         }
-        for (tile_storage, tilemap_size, map_size) in tilemap_query.iter_mut() {
-            let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
-            let mut jobs = job_queue.single_mut();
-            for tile_pos in tile_positions.iter() {
-                if let Some(tile) = tile_storage.get(tile_pos) {
-                    if tile_query.get_mut(tile).is_ok() {
-                        jobs.in_queue[xy_i(map_size, tile_pos.x, tile_pos.y)] = Some(Job {
-                            jtype: JobType::Tile(*tile_pos),
-                            tool: Tool {
-                                tool_type: ToolType::Hoe,
-                            },
-                            result: JobResult::Tile(Tiles::Farmland),
-                        })
-                    }
+        let (tile_storage, tilemap_size, map_size) = tilemap_query.single();
+        let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
+        let mut jobs = job_queue.single_mut();
+        for tile_pos in tile_positions.iter() {
+            if let Some(tile) = tile_storage.get(tile_pos) {
+                if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
+                    let tool_type = ToolType::Hoe;
+                    jobs.in_queue[xy_i(map_size, tile_pos.x, tile_pos.y)] = Some(Job {
+                        jtype: JobType::Tile(*tile_pos),
+                        tool: Tool { tool_type },
+                        result: JobResult::Tile(Tiles::Farmland),
+                    });
+                    tile_texture.0 = tool_type.get_texture_index();
                 }
             }
         }
+
         selection.reset();
     }
 }

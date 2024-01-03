@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::{map::TilemapSize, tiles::TilePos};
 
-use crate::{entities::material::Material, entities::tool::Tool, map::tile::Tiles};
+use crate::{
+    entities::material::Material,
+    entities::tool::Tool,
+    map::{tile::Tiles, tilemap::MainTileMap},
+};
 
 pub enum JobType {
     Tile(TilePos),
@@ -34,7 +38,10 @@ impl Jobs {
     }
 }
 
-pub fn generate_job_queue(mut commands: Commands, mut tilemap_query: Query<&TilemapSize>) {
+pub fn generate_job_queue(
+    mut commands: Commands,
+    tilemap_query: Query<&TilemapSize, With<MainTileMap>>,
+) {
     let tilemap_size = tilemap_query.single();
     commands.spawn(Jobs::new_from_tilemap_size(tilemap_size));
 }

@@ -23,7 +23,7 @@ pub fn get_surrounding_index(map_size: TilemapSize, index: usize) -> Vec<usize> 
 }
 
 pub fn get_surrounding_empty_index(
-    tile_array: &Vec<Option<Tiles>>,
+    tile_array: &[Option<Tiles>],
     map_size: TilemapSize,
     index: usize,
 ) -> Vec<usize> {
@@ -34,7 +34,7 @@ pub fn get_surrounding_empty_index(
 }
 
 pub fn get_surroudning_filled_index(
-    tile_array: &Vec<Option<Tiles>>,
+    tile_array: &[Option<Tiles>],
     map_size: TilemapSize,
     index: usize,
 ) -> Vec<usize> {
@@ -45,7 +45,7 @@ pub fn get_surroudning_filled_index(
 }
 
 pub fn xy_i(map_size: &TilemapSize, x: u32, y: u32) -> usize {
-    ((map_size.x as u32) * y + x) as usize
+    (map_size.x * y + x) as usize
 }
 
 pub fn i_xy(map_size: &TilemapSize, i: usize) -> TilePos {
