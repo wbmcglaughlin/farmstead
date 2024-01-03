@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use std::time::SystemTime;
 
 use super::{perlin::generate_perlin_noise_map, tile::Tiles};
 
@@ -18,7 +19,11 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
 
     let tilemap_entity = commands.spawn_empty().id();
     let mut tile_storage = TileStorage::empty(map_size);
-    let perlin_map = generate_perlin_noise_map(map_size, 6, 0.5, 2.0, 42);
+    let seed = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_secs() as u32;
+    let perlin_map = generate_perlin_noise_map(map_size, 6, 0.5, 2.0, seed);
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
     for x in 0..map_size.x {
