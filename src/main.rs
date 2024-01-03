@@ -40,6 +40,7 @@ fn main() {
                 entities::player::player_movement,
                 entities::player::search_for_job,
                 entities::click::click_drag_handler,
+                entities::player::execute_job,
             ),
         )
         .add_systems(

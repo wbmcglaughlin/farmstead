@@ -1,5 +1,5 @@
 use crate::{
-    jobs::job::{Job, JobResult, JobType, Jobs},
+    jobs::job::{Job, JobResult, JobType, Jobs, TileJob},
     map::{tile::Tiles, tilemap::JobLayerTileMap},
     ui::{
         mode::SelectionMode,
@@ -131,10 +131,13 @@ pub fn check_tiles_selection(
             if let Some(tile) = tile_storage.get(tile_pos) {
                 if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
                     let tool_type = ToolType::Hoe;
+                    let job_type = TileJob {
+                        tilepos: *tile_pos,
+                        tile: Tiles::Farmland,
+                    };
                     jobs.in_queue.push(Job {
-                        jtype: JobType::Tile(*tile_pos),
+                        jtype: JobType::Tile(job_type),
                         tool: Tool { tool_type },
-                        result: JobResult::Tile(Tiles::Farmland),
                     });
                     tile_texture.0 = tool_type.get_texture_index();
                 }

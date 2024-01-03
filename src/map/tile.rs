@@ -1,6 +1,6 @@
 use bevy::ecs::component::Component;
 
-#[derive(Component, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Tiles {
     Field,
     Grass,
