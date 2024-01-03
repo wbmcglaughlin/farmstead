@@ -116,7 +116,7 @@ pub fn check_entities_selection(
 
 pub fn check_tiles_selection(
     mut job_queue: Query<&mut Jobs>,
-    mut tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
+    tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
     mut tile_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
 ) {
@@ -131,7 +131,7 @@ pub fn check_tiles_selection(
             if let Some(tile) = tile_storage.get(tile_pos) {
                 if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
                     let tool_type = ToolType::Hoe;
-                    jobs.in_queue[xy_i(map_size, tile_pos.x, tile_pos.y)] = Some(Job {
+                    jobs.in_queue.push(Job {
                         jtype: JobType::Tile(*tile_pos),
                         tool: Tool { tool_type },
                         result: JobResult::Tile(Tiles::Farmland),

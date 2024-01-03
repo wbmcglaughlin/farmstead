@@ -38,6 +38,7 @@ fn main() {
                 entities::player::spawn_player,
                 entities::player::move_to_target,
                 entities::player::player_movement,
+                entities::player::search_for_job,
                 entities::click::click_drag_handler,
             ),
         )
