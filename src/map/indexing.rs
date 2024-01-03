@@ -33,7 +33,7 @@ pub fn get_surrounding_empty_index(
     surrounding
 }
 
-pub fn get_surroudning_filled_index(
+pub fn get_surrounding_filled_index(
     tile_array: &[Option<Tiles>],
     map_size: TilemapSize,
     index: usize,
