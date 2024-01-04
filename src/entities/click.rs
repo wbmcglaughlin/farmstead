@@ -138,6 +138,7 @@ pub fn check_tiles_selection(
                     jobs.in_queue.push(Job {
                         jtype: JobType::Tile(job_type),
                         tool: Tool { tool_type },
+                        time: Timer::from_seconds(2.0, TimerMode::Once),
                     });
                     tile_texture.0 = tool_type.get_texture_index();
                 }

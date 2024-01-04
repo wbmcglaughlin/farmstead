@@ -1,4 +1,4 @@
-use bevy::{asset, prelude::*};
+use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use std::time::SystemTime;
 
@@ -145,43 +145,6 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
             ..Default::default()
         },
         JobLayerTileMap,
-    ));
-
-    let tilemap_entity = commands.spawn_empty().id();
-    let mut tile_storage = TileStorage::empty(map_size);
-    let texture_handle: Vec<Handle<Image>> = vec![
-        asset_server.load("wheat.png"),
-        asset_server.load("removable.png"),
-    ];
-
-    for x in 0..map_size.x {
-        for y in 0..map_size.y {
-            let tile_pos = TilePos { x, y };
-
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(0),
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, tile_entity);
-        }
-    }
-
-    commands.entity(tilemap_entity).insert((
-        TilemapBundle {
-            grid_size,
-            map_type,
-            size: map_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Vector(texture_handle),
-            tile_size,
-            transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.5),
-            ..Default::default()
-        },
-        PlantTileLayer,
     ));
 }
 

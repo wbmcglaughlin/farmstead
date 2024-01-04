@@ -187,6 +187,7 @@ pub fn search_for_job(
 }
 
 pub fn execute_job(
+    time: Res<Time>,
     mut player_entity: Query<&mut Player>,
     jobtile_map_query: Query<&TileStorage, With<JobLayerTileMap>>,
     tilemap_query: Query<&TileStorage, With<MainTileMap>>,
@@ -204,6 +205,9 @@ pub fn execute_job(
                             jobtile_storage.get(&tile_job.tilepos),
                             tile_storage.get(&tile_job.tilepos),
                         ) {
+                            if !job.time.tick(time.delta()).finished() {
+                                continue;
+                            }
                             // TODO: if either of these two Ok's fall through unexpected behaviour will occur.
                             if let Ok(mut job_tile_texture) = tile_query.get_mut(job_tile) {
                                 job_tile_texture.0 = 0;

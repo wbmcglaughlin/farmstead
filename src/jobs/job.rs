@@ -22,13 +22,8 @@ pub enum JobType {
 }
 
 #[derive(Debug)]
-pub enum JobResult {
-    Tile(Tiles),
-    EntityId(Vec<Material>),
-}
-
-#[derive(Debug)]
 pub struct Job {
+    pub time: Timer,
     pub jtype: JobType,
     pub tool: Tool,
 }
