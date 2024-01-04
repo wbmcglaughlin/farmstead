@@ -30,6 +30,7 @@ fn main() {
             (
                 ui::camera::add_camera,
                 map::tilemap::generate_map,
+                entities::plant::plant,
                 ui::selection::create_rect_sprite,
             ),
         )
@@ -46,6 +47,7 @@ fn main() {
                 entities::player::search_for_job,
                 entities::click::click_drag_handler,
                 entities::player::execute_job,
+                entities::plant::animate_plant,
             ),
         )
         .add_systems(
