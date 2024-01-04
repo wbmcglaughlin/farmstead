@@ -22,3 +22,18 @@ impl Tiles {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum WaterTiles {
+    LowWater,
+    MediumWater,
+}
+
+impl WaterTiles {
+    pub fn get_texture_index(&self) -> u32 {
+        match self {
+            WaterTiles::LowWater => 1,
+            WaterTiles::MediumWater => 2,
+        }
+    }
+}
