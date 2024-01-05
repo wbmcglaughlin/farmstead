@@ -19,6 +19,17 @@ pub struct WaterTileMap;
 #[derive(Component)]
 pub struct PlantTileLayer;
 
+#[derive(Component)]
+pub struct TileComponent {
+    pub tile: Tiles,
+}
+
+impl TileComponent {
+    pub fn update_tile_type(&mut self, tile: Tiles) {
+        self.tile = tile;
+    }
+}
+
 pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     // This should be constant.
     let map_size = TilemapSize { x: 128, y: 128 };
@@ -52,7 +63,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
                         texture_index: TileTextureIndex(tile.get_texture_index()),
                         ..Default::default()
                     },
-                    tile,
+                    TileComponent { tile },
                 ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);

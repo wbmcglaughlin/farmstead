@@ -6,7 +6,7 @@ use bevy_ecs_tilemap::{
 
 use crate::{
     jobs::job::{self, Job, Jobs},
-    map::tilemap::{JobLayerTileMap, MainTileMap},
+    map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
 };
 
 const PLAYER_SPEED: f32 = 30.0;
@@ -191,7 +191,8 @@ pub fn execute_job(
     mut player_entity: Query<&mut Player>,
     jobtile_map_query: Query<&TileStorage, With<JobLayerTileMap>>,
     tilemap_query: Query<&TileStorage, With<MainTileMap>>,
-    mut tile_query: Query<&mut TileTextureIndex>,
+    mut tile_query: Query<(&mut TileTextureIndex, &mut TileComponent)>,
+    mut job_tile_query: Query<&mut TileTextureIndex, Without<TileComponent>>,
 ) {
     let jobtile_storage = jobtile_map_query.single();
     let tile_storage = tilemap_query.single();
@@ -209,11 +210,12 @@ pub fn execute_job(
                                 continue;
                             }
                             // TODO: if either of these two Ok's fall through unexpected behaviour will occur.
-                            if let Ok(mut job_tile_texture) = tile_query.get_mut(job_tile) {
+                            if let Ok(mut job_tile_texture) = job_tile_query.get_mut(job_tile) {
                                 job_tile_texture.0 = 0;
                             }
-                            if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
+                            if let Ok((mut tile_texture, mut tiles)) = tile_query.get_mut(tile) {
                                 tile_texture.0 = tile_job.tile.get_texture_index();
+                                tiles.update_tile_type(tile_job.tile);
                             }
                             player.job = None;
                         }

@@ -2,7 +2,7 @@ use crate::{
     jobs::job::{Job, JobType, Jobs, TileJob},
     map::{
         tile::Tiles,
-        tilemap::{JobLayerTileMap, MainTileMap},
+        tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
     },
     ui::{
         mode::SelectionMode,
@@ -121,7 +121,7 @@ pub fn check_tiles_selection(
     mut job_queue: Query<&mut Jobs>,
     tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
     tilemap_query_tile: Query<&TileStorage, With<MainTileMap>>,
-    tile_query: Query<&Tiles>,
+    mut tile_query: Query<&TileComponent>,
     mut tile_texture_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
 ) {
@@ -137,11 +137,10 @@ pub fn check_tiles_selection(
             if let (Some(tile), Some(tiles)) =
                 (tile_storage.get(tile_pos), tiles_storage.get(tile_pos))
             {
-                if let (Ok(mut tile_texture), Ok(tile_type)) =
-                    (tile_texture_query.get_mut(tile), tile_query.get(tiles))
+                if let (Ok(mut tile_texture), Ok(tile_comp)) =
+                    (tile_texture_query.get_mut(tile), tile_query.get_mut(tiles))
                 {
-                    if *tile_type != Tiles::Field {
-                        dbg!(tile_type);
+                    if tile_comp.tile != Tiles::Field {
                         continue;
                     }
                     let tool_type = ToolType::Hoe;
