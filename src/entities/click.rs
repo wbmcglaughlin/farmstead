@@ -1,6 +1,9 @@
 use crate::{
     jobs::job::{Job, JobType, Jobs, TileJob},
-    map::{tile::Tiles, tilemap::JobLayerTileMap},
+    map::{
+        tile::Tiles,
+        tilemap::{JobLayerTileMap, MainTileMap},
+    },
     ui::{
         mode::SelectionMode,
         selection::{EntitySelectionRectangle, SelectionStatus},
@@ -117,7 +120,9 @@ pub fn check_entities_selection(
 pub fn check_tiles_selection(
     mut job_queue: Query<&mut Jobs>,
     tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
-    mut tile_query: Query<&mut TileTextureIndex>,
+    tilemap_query_tile: Query<&TileStorage, With<MainTileMap>>,
+    tile_query: Query<&Tiles>,
+    mut tile_texture_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
 ) {
     for mut selection in selections.iter_mut() {
@@ -125,11 +130,20 @@ pub fn check_tiles_selection(
             continue;
         }
         let (tile_storage, tilemap_size, map_size) = tilemap_query.single();
+        let tiles_storage = tilemap_query_tile.single();
         let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
         let mut jobs = job_queue.single_mut();
         for tile_pos in tile_positions.iter() {
-            if let Some(tile) = tile_storage.get(tile_pos) {
-                if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
+            if let (Some(tile), Some(tiles)) =
+                (tile_storage.get(tile_pos), tiles_storage.get(tile_pos))
+            {
+                if let (Ok(mut tile_texture), Ok(tile_type)) =
+                    (tile_texture_query.get_mut(tile), tile_query.get(tiles))
+                {
+                    if *tile_type != Tiles::Field {
+                        dbg!(tile_type);
+                        continue;
+                    }
                     let tool_type = ToolType::Hoe;
                     let job_type = TileJob {
                         tilepos: *tile_pos,

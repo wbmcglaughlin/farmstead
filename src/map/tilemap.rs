@@ -45,12 +45,15 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
             let tile = tile_height_mapping(val);
 
             let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(tile.get_texture_index()),
-                    ..Default::default()
-                })
+                .spawn((
+                    TileBundle {
+                        position: tile_pos,
+                        tilemap_id: TilemapId(tilemap_entity),
+                        texture_index: TileTextureIndex(tile.get_texture_index()),
+                        ..Default::default()
+                    },
+                    tile,
+                ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
         }
