@@ -17,7 +17,7 @@ pub fn movement(
         &Camera,
     )>,
     q_window: Query<&Window>,
-    tilemap: Query<(&TilemapSize, &TilemapTileSize), (With<MainTileMap>, Without<Camera>)>,
+    tilemap: Query<(&TilemapSize, &TilemapTileSize), With<MainTileMap>>,
 ) {
     for (global, mut transform, mut ortho, camera) in query.iter_mut() {
         let direction = direction_from_keys(&keyboard_input);
