@@ -30,11 +30,13 @@ fn main() {
             (
                 ui::camera::add_camera,
                 map::tilemap::generate_map,
-                entities::plant::plant,
                 ui::selection::create_rect_sprite,
             ),
         )
-        .add_systems(PostStartup, jobs::job::generate_job_queue)
+        .add_systems(
+            PostStartup,
+            (jobs::job::generate_job_queue, entities::plant::plant),
+        )
         .add_systems(
             Update,
             (

@@ -174,3 +174,11 @@ fn water_height(water_height: f64, val: f64) -> Option<WaterTiles> {
 
     tile
 }
+
+pub fn tile_pos_to_transfrom(tile_pos: TilePos, tilemap_transform: Vec3) -> Vec3 {
+    Vec3::new(
+        tile_pos.x as f32 * 16.0 + tilemap_transform.x,
+        tile_pos.y as f32 * 16.0 + tilemap_transform.y,
+        0.0,
+    )
+}
