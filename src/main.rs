@@ -38,7 +38,7 @@ fn main() {
                 ui::selection::create_rect_sprite,
             ),
         )
-        .add_systems(PostStartup, (jobs::job::generate_job_queue))
+        .add_systems(PostStartup, jobs::job::generate_job_queue)
         .add_systems(
             Update,
             (

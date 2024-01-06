@@ -12,6 +12,8 @@ use crate::{
     },
 };
 
+use super::{plant::Plant, EntityTileStorage};
+
 const PLAYER_SPEED: f32 = 30.0;
 pub const PLAYER_SPAWN_TIMER_COOLDOWN: f32 = 0.5;
 
@@ -205,6 +207,8 @@ pub fn execute_job(
     tilemap_query: Query<&TileStorage, With<MainTileMap>>,
     mut tile_query: Query<(&mut TileTextureIndex, &mut TileComponent)>,
     mut job_tile_query: Query<&mut TileTextureIndex, Without<TileComponent>>,
+    mut tile_mapping: ResMut<EntityTileStorage>,
+    mut tile_entity_query: Query<&mut Plant>,
 ) {
     let jobtile_storage = jobtile_map_query.single();
     let tile_storage = tilemap_query.single();
@@ -233,7 +237,25 @@ pub fn execute_job(
                         }
                     }
                     job::JobType::Entity(_) => todo!(),
-                    job::JobType::TileEntity(job) => todo!(),
+                    job::JobType::TileEntity(tile_job) => {
+                        if !job.time.tick(time.delta()).finished() {
+                            continue;
+                        }
+                        match tile_job.etype {
+                            super::TileEntityType::Plant(plant) => {
+                                if let Some(plant_entity) =
+                                    tile_mapping.storage.get(&tile_job.tilepos)
+                                {
+                                    if let Ok(mut plant_struct) =
+                                        tile_entity_query.get_mut(plant_entity)
+                                    {
+                                        plant_struct.planted = true;
+                                        player.job = None;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
