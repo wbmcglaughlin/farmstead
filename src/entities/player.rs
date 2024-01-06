@@ -6,8 +6,10 @@ use bevy_ecs_tilemap::{
 
 use crate::{
     jobs::job::{self, Job, Jobs},
-    map::tilemap::{JobLayerTileMap, MainTileMap},
+    map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
 };
+
+use super::{plant::Plant, EntityTileStorage};
 
 const PLAYER_SPEED: f32 = 30.0;
 pub const PLAYER_SPAWN_TIMER_COOLDOWN: f32 = 0.5;
@@ -182,15 +184,28 @@ pub fn search_for_job(
                 player.job = Some(jobs.in_queue.remove(0));
             }
             job::JobType::Entity(_) => todo!(),
+            job::JobType::TileEntity(tile_entity_job) => {
+                let pos = tile_entity_job.tilepos;
+                player.target = Some(Vec2::new(
+                    pos.x as f32 * 16.0 - halfborder.x,
+                    pos.y as f32 * 16.0 - halfborder.y,
+                ));
+
+                player.job = Some(jobs.in_queue.remove(0));
+            }
         }
     }
 }
 
 pub fn execute_job(
+    time: Res<Time>,
     mut player_entity: Query<&mut Player>,
     jobtile_map_query: Query<&TileStorage, With<JobLayerTileMap>>,
     tilemap_query: Query<&TileStorage, With<MainTileMap>>,
-    mut tile_query: Query<&mut TileTextureIndex>,
+    mut tile_query: Query<(&mut TileTextureIndex, &mut TileComponent)>,
+    mut job_tile_query: Query<&mut TileTextureIndex, Without<TileComponent>>,
+    tile_mapping: ResMut<EntityTileStorage>,
+    mut tile_entity_query: Query<&mut Plant>,
 ) {
     let jobtile_storage = jobtile_map_query.single();
     let tile_storage = tilemap_query.single();
@@ -204,17 +219,40 @@ pub fn execute_job(
                             jobtile_storage.get(&tile_job.tilepos),
                             tile_storage.get(&tile_job.tilepos),
                         ) {
+                            if !job.time.tick(time.delta()).finished() {
+                                continue;
+                            }
                             // TODO: if either of these two Ok's fall through unexpected behaviour will occur.
-                            if let Ok(mut job_tile_texture) = tile_query.get_mut(job_tile) {
+                            if let Ok(mut job_tile_texture) = job_tile_query.get_mut(job_tile) {
                                 job_tile_texture.0 = 0;
                             }
-                            if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
+                            if let Ok((mut tile_texture, mut tiles)) = tile_query.get_mut(tile) {
                                 tile_texture.0 = tile_job.tile.get_texture_index();
+                                tiles.update_tile_type(tile_job.tile);
                             }
                             player.job = None;
                         }
                     }
                     job::JobType::Entity(_) => todo!(),
+                    job::JobType::TileEntity(tile_job) => {
+                        if !job.time.tick(time.delta()).finished() {
+                            continue;
+                        }
+                        match tile_job.etype {
+                            super::TileEntityType::Plant(_) => {
+                                if let Some(plant_entity) =
+                                    tile_mapping.storage.get(&tile_job.tilepos)
+                                {
+                                    if let Ok(mut plant_struct) =
+                                        tile_entity_query.get_mut(plant_entity)
+                                    {
+                                        plant_struct.planted = true;
+                                        player.job = None;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

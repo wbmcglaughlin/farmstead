@@ -16,6 +16,20 @@ pub struct JobLayerTileMap;
 #[derive(Component)]
 pub struct WaterTileMap;
 
+#[derive(Component)]
+pub struct PlantTileLayer;
+
+#[derive(Component)]
+pub struct TileComponent {
+    pub tile: Tiles,
+}
+
+impl TileComponent {
+    pub fn update_tile_type(&mut self, tile: Tiles) {
+        self.tile = tile;
+    }
+}
+
 pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     // This should be constant.
     let map_size = TilemapSize { x: 128, y: 128 };
@@ -42,12 +56,15 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
             let tile = tile_height_mapping(val);
 
             let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    texture_index: TileTextureIndex(tile.get_texture_index()),
-                    ..Default::default()
-                })
+                .spawn((
+                    TileBundle {
+                        position: tile_pos,
+                        tilemap_id: TilemapId(tilemap_entity),
+                        texture_index: TileTextureIndex(tile.get_texture_index()),
+                        ..Default::default()
+                    },
+                    TileComponent { tile },
+                ))
                 .id();
             tile_storage.set(&tile_pos, tile_entity);
         }
@@ -170,4 +187,12 @@ fn water_height(water_height: f64, val: f64) -> Option<WaterTiles> {
     }
 
     tile
+}
+
+pub fn tile_pos_to_transfrom(tile_pos: TilePos, tilemap_transform: Vec3) -> Vec3 {
+    Vec3::new(
+        tile_pos.x as f32 * 16.0 + tilemap_transform.x,
+        tile_pos.y as f32 * 16.0 + tilemap_transform.y,
+        0.0,
+    )
 }

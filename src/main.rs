@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use entities::player::{PlayerSpawnTimer, PLAYER_SPAWN_TIMER_COOLDOWN};
+use entities::{
+    player::{PlayerSpawnTimer, PLAYER_SPAWN_TIMER_COOLDOWN},
+    EntityJobSpawnQueue, EntityTileStorage,
+};
 mod entities;
 mod jobs;
 mod map;
@@ -25,6 +28,8 @@ fn main() {
             PLAYER_SPAWN_TIMER_COOLDOWN,
             TimerMode::Repeating,
         )))
+        .insert_resource(EntityJobSpawnQueue::new())
+        .insert_resource(EntityTileStorage::new())
         .add_systems(
             Startup,
             (
@@ -46,6 +51,8 @@ fn main() {
                 entities::player::search_for_job,
                 entities::click::click_drag_handler,
                 entities::player::execute_job,
+                entities::plant::animate_plant,
+                entities::add_tile_entity_jobs,
             ),
         )
         .add_systems(

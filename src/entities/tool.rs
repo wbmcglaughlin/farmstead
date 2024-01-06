@@ -4,6 +4,8 @@ use bevy::prelude::*;
 pub enum ToolType {
     Hoe,
     Pickaxe,
+    Shovel,
+    Bag,
 }
 
 impl ToolType {
@@ -11,11 +13,13 @@ impl ToolType {
         match self {
             ToolType::Hoe => 1,
             ToolType::Pickaxe => 2,
+            ToolType::Shovel => 3,
+            ToolType::Bag => 4,
         }
     }
 }
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Clone)]
 pub struct Tool {
     pub tool_type: ToolType,
 }

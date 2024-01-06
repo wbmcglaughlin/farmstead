@@ -1,6 +1,9 @@
 use crate::{
-    jobs::job::{Job, JobType, Jobs, TileJob},
-    map::{tile::Tiles, tilemap::JobLayerTileMap},
+    jobs::job::{Job, JobType, Jobs, TileEntityJob, TileJob},
+    map::{
+        tile::Tiles,
+        tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
+    },
     ui::{
         mode::SelectionMode,
         selection::{EntitySelectionRectangle, SelectionStatus},
@@ -10,8 +13,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_ecs_tilemap::prelude::*;
 
 use super::{
+    plant::PlantType,
     player::{Highlight, Player},
     tool::{Tool, ToolType},
+    EntityJobSpawnQueue, TileEntityType,
 };
 
 pub fn click_drag_handler(
@@ -117,29 +122,53 @@ pub fn check_entities_selection(
 pub fn check_tiles_selection(
     mut job_queue: Query<&mut Jobs>,
     tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
-    mut tile_query: Query<&mut TileTextureIndex>,
+    tilemap_query_tile: Query<&TileStorage, With<MainTileMap>>,
+    mut tile_query: Query<&TileComponent>,
+    mut tile_texture_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
+    mut entity_job_spawn_queue: ResMut<EntityJobSpawnQueue>,
 ) {
     for mut selection in selections.iter_mut() {
         if selection.status != SelectionStatus::Selected || selection.get_area().is_none() {
             continue;
         }
         let (tile_storage, tilemap_size, map_size) = tilemap_query.single();
+        let tiles_storage = tilemap_query_tile.single();
         let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
         let mut jobs = job_queue.single_mut();
         for tile_pos in tile_positions.iter() {
-            if let Some(tile) = tile_storage.get(tile_pos) {
-                if let Ok(mut tile_texture) = tile_query.get_mut(tile) {
-                    let tool_type = ToolType::Hoe;
-                    let job_type = TileJob {
-                        tilepos: *tile_pos,
-                        tile: Tiles::Farmland,
-                    };
-                    jobs.in_queue.push(Job {
-                        jtype: JobType::Tile(job_type),
-                        tool: Tool { tool_type },
-                    });
-                    tile_texture.0 = tool_type.get_texture_index();
+            if let (Some(tile), Some(tiles)) =
+                (tile_storage.get(tile_pos), tiles_storage.get(tile_pos))
+            {
+                if let (Ok(mut tile_texture), Ok(tile_comp)) =
+                    (tile_texture_query.get_mut(tile), tile_query.get_mut(tiles))
+                {
+                    if tile_comp.tile == Tiles::Field {
+                        let tool_type = ToolType::Hoe;
+                        let job_type = TileJob {
+                            tilepos: *tile_pos,
+                            tile: Tiles::Farmland,
+                        };
+                        jobs.in_queue.push(Job {
+                            jtype: JobType::Tile(job_type),
+                            tool: Some(Tool { tool_type }),
+                            time: Timer::from_seconds(2.0, TimerMode::Once),
+                        });
+                        tile_texture.0 = tool_type.get_texture_index();
+                    } else if tile_comp.tile == Tiles::Farmland {
+                        // TODO: this needs to push to the EntitySpawnJob queue.
+                        // Each pass of the entity spawn queue will render the tile with an opacity,
+                        // and push to the job queue.
+                        let job_type = TileEntityJob {
+                            tilepos: *tile_pos,
+                            etype: TileEntityType::Plant(PlantType::Wheat),
+                        };
+                        entity_job_spawn_queue.queue.push(Job {
+                            jtype: JobType::TileEntity(job_type),
+                            tool: None,
+                            time: Timer::from_seconds(0.0, TimerMode::Once),
+                        });
+                    }
                 }
             }
         }
