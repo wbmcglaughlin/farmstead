@@ -14,7 +14,7 @@ pub mod plant;
 pub mod player;
 pub mod tool;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TileEntityType {
     Plant(PlantType),
 }
@@ -45,7 +45,7 @@ impl EntityTileStorage {
 
 pub fn add_tile_entity_jobs(
     mut commands: Commands,
-    mut jobs_query: Query<&Jobs>,
+    mut jobs_query: Query<&mut Jobs>,
     mut tile_entity_jobs: ResMut<EntityJobSpawnQueue>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
@@ -84,14 +84,19 @@ pub fn add_tile_entity_jobs(
                             Plant {
                                 ptype: *plant_type,
                                 tile_pos,
-                                stage_progress: Timer::from_seconds(20.0, TimerMode::Repeating),
+                                stage_progress: Timer::from_seconds(2.0, TimerMode::Repeating),
+                                planted: false,
                             },
                             growth_stage,
                         ));
+
+                        jobs.in_queue.push(queue_item.clone());
                     }
                 }
             }
             crate::jobs::job::JobType::Entity(_) => todo!(),
         }
     }
+
+    tile_entity_jobs.queue.clear();
 }

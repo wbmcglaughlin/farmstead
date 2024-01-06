@@ -7,32 +7,32 @@ use crate::{
     map::tile::Tiles,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TileJob {
     pub tilepos: TilePos,
     pub tile: Tiles,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EntityJob {
     pub entity: Entity,
     pub material: Vec<Material>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TileEntityJob {
     pub tilepos: TilePos,
     pub etype: TileEntityType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum JobType {
     Tile(TileJob),
     TileEntity(TileEntityJob),
     Entity(EntityJob),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Job {
     pub time: Timer,
     pub jtype: JobType,

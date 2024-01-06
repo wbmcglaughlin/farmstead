@@ -6,7 +6,10 @@ use bevy_ecs_tilemap::{
 
 use crate::{
     jobs::job::{self, Job, Jobs},
-    map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
+    map::{
+        tile,
+        tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
+    },
 };
 
 const PLAYER_SPEED: f32 = 30.0;
@@ -182,7 +185,15 @@ pub fn search_for_job(
                 player.job = Some(jobs.in_queue.remove(0));
             }
             job::JobType::Entity(_) => todo!(),
-            job::JobType::TileEntity(_) => todo!(),
+            job::JobType::TileEntity(tile_entity_job) => {
+                let pos = tile_entity_job.tilepos;
+                player.target = Some(Vec2::new(
+                    pos.x as f32 * 16.0 - halfborder.x,
+                    pos.y as f32 * 16.0 - halfborder.y,
+                ));
+
+                player.job = Some(jobs.in_queue.remove(0));
+            }
         }
     }
 }

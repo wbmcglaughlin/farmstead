@@ -19,7 +19,7 @@ impl ToolType {
     }
 }
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Clone)]
 pub struct Tool {
     pub tool_type: ToolType,
 }

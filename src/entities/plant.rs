@@ -23,6 +23,7 @@ pub struct Plant {
     pub ptype: PlantType,
     pub tile_pos: TilePos,
     pub stage_progress: Timer,
+    pub planted: bool,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -36,6 +37,9 @@ pub fn animate_plant(
     mut query: Query<(&mut Plant, &GrowthStage, &mut TextureAtlasSprite)>,
 ) {
     for (mut plant, indices, mut sprite) in &mut query {
+        if !plant.planted {
+            continue;
+        }
         plant.stage_progress.tick(time.delta());
         if plant.stage_progress.just_finished() {
             sprite.index = if sprite.index == indices.last {
@@ -45,37 +49,6 @@ pub fn animate_plant(
             };
         }
     }
-}
-
-pub fn plant(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    tilemap_query: Query<&Transform, With<MainTileMap>>,
-) {
-    let texture_handle = asset_server.load("wheat.png");
-    let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1, None, None);
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    // Use only the subset of sprites in the sheet that make up the run animation
-    let tile_pos = TilePos { x: 0, y: 0 };
-    let growth_stage = GrowthStage { first: 0, last: 4 };
-    let tilemap_transform = tilemap_query.single();
-
-    commands.spawn((
-        plant_bundle(
-            texture_atlas_handle,
-            growth_stage,
-            tile_pos,
-            tilemap_transform.translation,
-        ),
-        Plant {
-            ptype: PlantType::Wheat,
-            tile_pos,
-            stage_progress: Timer::from_seconds(20.0, TimerMode::Repeating),
-        },
-        growth_stage,
-    ));
 }
 
 pub fn plant_bundle(
