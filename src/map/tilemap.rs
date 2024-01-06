@@ -39,7 +39,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
 
     let tilemap_entity = commands.spawn_empty().id();
     let mut tile_storage = TileStorage::empty(map_size);
-    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = asset_server.load("sprites/tiles.png");
 
     // Generate the perlin noise map using the system time as the map generation seed.
     let seed = SystemTime::now()
@@ -86,7 +86,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
 
     let tilemap_entity = commands.spawn_empty().id();
     let mut tile_storage = TileStorage::empty(map_size);
-    let texture_handle: Handle<Image> = asset_server.load("water.png");
+    let texture_handle: Handle<Image> = asset_server.load("sprites/water.png");
 
     for x in 0..map_size.x {
         for y in 0..map_size.y {
@@ -129,7 +129,7 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
 
     let tilemap_entity = commands.spawn_empty().id();
     let mut tile_storage = TileStorage::empty(map_size);
-    let texture_handle: Handle<Image> = asset_server.load("jobs_layer.png");
+    let texture_handle: Handle<Image> = asset_server.load("sprites/jobs_layer.png");
 
     for x in 0..map_size.x {
         for y in 0..map_size.y {

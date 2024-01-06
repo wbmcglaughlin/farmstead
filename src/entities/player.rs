@@ -64,7 +64,7 @@ pub fn spawn_player(
         return;
     }
 
-    let texture_handle = asset_server.load("walk.png");
+    let texture_handle = asset_server.load("sprites/walk.png");
     let texture_atlas =
         TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -74,7 +74,7 @@ pub fn spawn_player(
 
     let hightlight = commands
         .spawn(SpriteBundle {
-            texture: asset_server.load("highlight.png"),
+            texture: asset_server.load("sprites/highlight.png"),
             transform: player_transform,
             visibility: Visibility::Hidden,
             ..default()

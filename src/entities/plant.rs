@@ -11,7 +11,7 @@ pub enum PlantType {
 impl PlantType {
     pub fn png_file(&self) -> String {
         let filename = match self {
-            PlantType::Wheat => "wheat.png",
+            PlantType::Wheat => "sprites/wheat.png",
         };
 
         String::from(filename)
