@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::tiles::TilePos;
 
-use crate::map::tilemap::{tile_pos_to_transfrom, MainTileMap};
+use crate::map::tilemap::tile_pos_to_transfrom;
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlantType {

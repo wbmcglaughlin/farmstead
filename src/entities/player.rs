@@ -6,10 +6,7 @@ use bevy_ecs_tilemap::{
 
 use crate::{
     jobs::job::{self, Job, Jobs},
-    map::{
-        tile,
-        tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
-    },
+    map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
 };
 
 use super::{plant::Plant, EntityTileStorage};
@@ -207,7 +204,7 @@ pub fn execute_job(
     tilemap_query: Query<&TileStorage, With<MainTileMap>>,
     mut tile_query: Query<(&mut TileTextureIndex, &mut TileComponent)>,
     mut job_tile_query: Query<&mut TileTextureIndex, Without<TileComponent>>,
-    mut tile_mapping: ResMut<EntityTileStorage>,
+    tile_mapping: ResMut<EntityTileStorage>,
     mut tile_entity_query: Query<&mut Plant>,
 ) {
     let jobtile_storage = jobtile_map_query.single();
@@ -242,7 +239,7 @@ pub fn execute_job(
                             continue;
                         }
                         match tile_job.etype {
-                            super::TileEntityType::Plant(plant) => {
+                            super::TileEntityType::Plant(_) => {
                                 if let Some(plant_entity) =
                                     tile_mapping.storage.get(&tile_job.tilepos)
                                 {
