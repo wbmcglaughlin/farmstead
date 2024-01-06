@@ -3,8 +3,24 @@ use bevy_ecs_tilemap::tiles::TilePos;
 
 use crate::map::tilemap::{tile_pos_to_transfrom, MainTileMap};
 
+#[derive(Debug, Clone, Copy)]
+pub enum PlantType {
+    Wheat,
+}
+
+impl PlantType {
+    pub fn png_file(&self) -> String {
+        let filename = match self {
+            PlantType::Wheat => "wheat.png",
+        };
+
+        String::from(filename)
+    }
+}
+
 #[derive(Component)]
 pub struct Plant {
+    pub ptype: PlantType,
     pub tile_pos: TilePos,
     pub stage_progress: Timer,
 }
@@ -54,6 +70,7 @@ pub fn plant(
             tilemap_transform.translation,
         ),
         Plant {
+            ptype: PlantType::Wheat,
             tile_pos,
             stage_progress: Timer::from_seconds(20.0, TimerMode::Repeating),
         },

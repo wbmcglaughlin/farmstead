@@ -1,5 +1,5 @@
 use crate::{
-    jobs::job::{Job, JobType, Jobs, TileJob},
+    jobs::job::{Job, JobType, Jobs, TileEntityJob, TileJob},
     map::{
         tile::Tiles,
         tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
@@ -13,8 +13,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_ecs_tilemap::prelude::*;
 
 use super::{
+    plant::PlantType,
     player::{Highlight, Player},
     tool::{Tool, ToolType},
+    EntityJobSpawnQueue, TileEntityType,
 };
 
 pub fn click_drag_handler(
@@ -124,6 +126,7 @@ pub fn check_tiles_selection(
     mut tile_query: Query<&TileComponent>,
     mut tile_texture_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
+    mut entity_job_spawn_queue: ResMut<EntityJobSpawnQueue>,
 ) {
     for mut selection in selections.iter_mut() {
         if selection.status != SelectionStatus::Selected || selection.get_area().is_none() {
@@ -140,20 +143,32 @@ pub fn check_tiles_selection(
                 if let (Ok(mut tile_texture), Ok(tile_comp)) =
                     (tile_texture_query.get_mut(tile), tile_query.get_mut(tiles))
                 {
-                    if tile_comp.tile != Tiles::Field {
-                        continue;
+                    if tile_comp.tile == Tiles::Field {
+                        let tool_type = ToolType::Hoe;
+                        let job_type = TileJob {
+                            tilepos: *tile_pos,
+                            tile: Tiles::Farmland,
+                        };
+                        jobs.in_queue.push(Job {
+                            jtype: JobType::Tile(job_type),
+                            tool: Some(Tool { tool_type }),
+                            time: Timer::from_seconds(2.0, TimerMode::Once),
+                        });
+                        tile_texture.0 = tool_type.get_texture_index();
+                    } else if tile_comp.tile == Tiles::Farmland {
+                        // TODO: this needs to push to the EntitySpawnJob queue.
+                        // Each pass of the entity spawn queue will render the tile with an opacity,
+                        // and push to the job queue.
+                        let job_type = TileEntityJob {
+                            tilepos: *tile_pos,
+                            etype: TileEntityType::Plant(PlantType::Wheat),
+                        };
+                        entity_job_spawn_queue.queue.push(Job {
+                            jtype: JobType::TileEntity(job_type),
+                            tool: None,
+                            time: Timer::from_seconds(0.0, TimerMode::Once),
+                        });
                     }
-                    let tool_type = ToolType::Hoe;
-                    let job_type = TileJob {
-                        tilepos: *tile_pos,
-                        tile: Tiles::Farmland,
-                    };
-                    jobs.in_queue.push(Job {
-                        jtype: JobType::Tile(job_type),
-                        tool: Tool { tool_type },
-                        time: Timer::from_seconds(2.0, TimerMode::Once),
-                    });
-                    tile_texture.0 = tool_type.get_texture_index();
                 }
             }
         }

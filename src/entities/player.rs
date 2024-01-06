@@ -182,6 +182,7 @@ pub fn search_for_job(
                 player.job = Some(jobs.in_queue.remove(0));
             }
             job::JobType::Entity(_) => todo!(),
+            job::JobType::TileEntity(_) => todo!(),
         }
     }
 }
@@ -221,6 +222,7 @@ pub fn execute_job(
                         }
                     }
                     job::JobType::Entity(_) => todo!(),
+                    job::JobType::TileEntity(job) => todo!(),
                 }
             }
         }
