@@ -59,14 +59,20 @@ pub fn spawn_player(
     let animation_indices = AnimationIndices { first: 0, last: 2 };
     let player_transform = Transform::from_xyz(0.0, 0.0, 1.0);
 
-    let hightlight = commands
-        .spawn(SpriteBundle {
-            texture: asset_server.load("sprites/highlight.png"),
-            transform: player_transform,
-            visibility: Visibility::Hidden,
-            ..default()
-        })
-        .insert(Highlight)
+    let highlight = commands
+        .spawn((
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::rgba(1.0, 1.0, 1.0, 0.2),
+                    custom_size: Some(Vec2::new(16.0, 16.0)),
+                    ..default()
+                },
+                transform: Transform::from_translation(Vec3::new(0., 0., 2.)),
+                visibility: Visibility::Hidden,
+                ..default()
+            },
+            Highlight,
+        ))
         .id();
 
     commands
@@ -81,7 +87,7 @@ pub fn spawn_player(
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             Player::new(),
         ))
-        .add_child(hightlight);
+        .add_child(highlight);
 }
 
 pub fn player_movement(
