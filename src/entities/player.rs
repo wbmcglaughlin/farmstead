@@ -141,10 +141,9 @@ pub fn move_to_target(time: Res<Time>, mut player_entity: Query<(&mut Transform,
 
 pub fn search_for_job(
     mut player_entity: Query<&mut Player>,
-    mut jobs_query: Query<&mut Jobs>,
+    mut jobs: ResMut<Jobs>,
     tilemap_query: Query<(&TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
 ) {
-    let jobs: &mut Jobs = &mut jobs_query.single_mut();
     let (tilemap_size, map_size) = tilemap_query.single();
     let halfborder = Vec2::new(
         tilemap_size.x * map_size.x as f32,

@@ -45,15 +45,13 @@ impl EntityTileStorage {
 
 pub fn add_tile_entity_jobs(
     mut commands: Commands,
-    mut jobs_query: Query<&mut Jobs>,
+    mut jobs: ResMut<Jobs>,
     mut tile_entity_jobs: ResMut<EntityJobSpawnQueue>,
     mut tile_entity_mapping: ResMut<EntityTileStorage>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     tilemap_query: Query<&Transform, With<JobLayerTileMap>>,
 ) {
-    let mut jobs = jobs_query.single_mut();
-
     for queue_item in tile_entity_jobs.queue.iter() {
         match &queue_item.jtype {
             crate::jobs::job::JobType::Tile(_) => todo!(),
