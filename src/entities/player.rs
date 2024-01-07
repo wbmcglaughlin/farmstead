@@ -222,6 +222,7 @@ pub fn execute_job(
                                     }
                                 }
                             }
+                            TileEntityType::Resource(_) => todo!(),
                         }
                     }
                 }

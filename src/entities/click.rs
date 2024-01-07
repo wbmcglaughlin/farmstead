@@ -13,7 +13,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_ecs_tilemap::prelude::*;
 
 use super::{
-    hitbox::{self, collision_aabb, HitBox},
+    hitbox::{collision_aabb, HitBox},
     plant::PlantType,
     player::{Highlight, Player},
     tool::{Tool, ToolType},

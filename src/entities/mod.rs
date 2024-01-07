@@ -6,18 +6,23 @@ use crate::{
     map::tilemap::JobLayerTileMap,
 };
 
-use self::plant::{plant_bundle, GrowthStage, Plant, PlantType};
+use self::{
+    plant::{plant_bundle, GrowthStage, Plant, PlantType},
+    resource::ResourceType,
+};
 
 pub mod click;
 pub mod hitbox;
 pub mod material;
 pub mod plant;
 pub mod player;
+pub mod resource;
 pub mod tool;
 
 #[derive(Debug, Clone)]
 pub enum TileEntityType {
     Plant(PlantType),
+    Resource(ResourceType),
 }
 
 #[derive(Resource)]
@@ -96,6 +101,7 @@ pub fn add_tile_entity_jobs(
 
                         jobs.in_queue.push(queue_item.clone());
                     }
+                    TileEntityType::Resource(_) => todo!(),
                 }
             }
             crate::jobs::job::JobType::Entity(_) => todo!(),
