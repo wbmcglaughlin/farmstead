@@ -3,7 +3,7 @@ use bevy_ecs_tilemap::prelude::*;
 use std::time::SystemTime;
 
 use super::{
-    perlin::generate_perlin_noise_map,
+    perlin::{generate_perlin_noise_map, PerlinNoiseSeed},
     tile::{Tiles, WaterTiles},
 };
 
@@ -46,7 +46,15 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("Time went backwards")
         .as_secs() as u32;
-    let perlin_map = generate_perlin_noise_map(map_size, 6, 0.5, 2.0, seed);
+    let perlin_seed = PerlinNoiseSeed {
+        octaves: 6,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        scale: 1.0,
+        seed,
+    };
+
+    let perlin_map = generate_perlin_noise_map(map_size, perlin_seed);
 
     for x in 0..map_size.x {
         for y in 0..map_size.y {
