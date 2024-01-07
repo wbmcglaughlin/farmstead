@@ -4,7 +4,7 @@ use entities::{
     player::{PlayerSpawnTimer, PLAYER_SPAWN_TIMER_COOLDOWN},
     EntityJobSpawnQueue, EntityTileStorage,
 };
-use jobs::JobCleanUpQueue;
+use jobs::{job::Jobs, JobCleanUpQueue};
 mod entities;
 mod jobs;
 mod map;
@@ -32,6 +32,7 @@ fn main() {
         .insert_resource(EntityJobSpawnQueue::new())
         .insert_resource(EntityTileStorage::new())
         .insert_resource(JobCleanUpQueue::new())
+        .insert_resource(Jobs::new())
         .add_systems(
             Startup,
             (
@@ -41,7 +42,6 @@ fn main() {
                 entities::player::spawn_player,
             ),
         )
-        .add_systems(PostStartup, jobs::job::generate_job_queue)
         .add_systems(
             Update,
             (

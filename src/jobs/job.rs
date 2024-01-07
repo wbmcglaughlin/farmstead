@@ -39,7 +39,7 @@ pub struct Job {
     pub tool: Option<Tool>,
 }
 
-#[derive(Component)]
+#[derive(Resource)]
 pub struct Jobs {
     pub in_queue: Vec<Job>,
 }
@@ -50,8 +50,4 @@ impl Jobs {
             in_queue: Vec::new(),
         }
     }
-}
-
-pub fn generate_job_queue(mut commands: Commands) {
-    commands.spawn(Jobs::new());
 }

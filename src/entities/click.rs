@@ -72,6 +72,7 @@ pub fn check_entities_selection(
     mut player_entity: Query<(&mut Transform, &mut Player, &mut Children)>,
     mut highlight: Query<&mut Visibility, With<Highlight>>,
     mut selections: Query<&mut EntitySelectionRectangle>,
+    mut jobs: ResMut<Jobs>,
 ) {
     for mut selection in selections.iter_mut() {
         if selection.status != SelectionStatus::Selected {
@@ -99,6 +100,12 @@ pub fn check_entities_selection(
                                 }
                             } else {
                                 player.target = Some(Vec2::new(start.x, start.y));
+
+                                // If the target is being changed, check to see if player has a job.
+                                if let Some(job) = &player.job {
+                                    jobs.in_queue.push(job.clone());
+                                    player.job = None;
+                                }
                                 *vis = Visibility::Hidden;
                             }
                         }
@@ -120,7 +127,7 @@ pub fn check_entities_selection(
 }
 
 pub fn check_tiles_selection(
-    mut job_queue: Query<&mut Jobs>,
+    mut jobs: ResMut<Jobs>,
     tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
     tilemap_query_tile: Query<&TileStorage, With<MainTileMap>>,
     mut tile_query: Query<&TileComponent>,
@@ -135,7 +142,6 @@ pub fn check_tiles_selection(
         let (tile_storage, tilemap_size, map_size) = tilemap_query.single();
         let tiles_storage = tilemap_query_tile.single();
         let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
-        let mut jobs = job_queue.single_mut();
         for tile_pos in tile_positions.iter() {
             if let (Some(tile), Some(tiles)) =
                 (tile_storage.get(tile_pos), tiles_storage.get(tile_pos))
