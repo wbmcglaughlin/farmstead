@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{input::mouse::MouseWheel, prelude::*};
 use bevy_ecs_tilemap::map::{TilemapSize, TilemapTileSize};
 
 use crate::map::tilemap::MainTileMap;
@@ -10,6 +10,7 @@ pub fn add_camera(mut commands: Commands) {
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
+    mut scroll_event: EventReader<MouseWheel>,
     mut query: Query<(
         &GlobalTransform,
         &mut Transform,
@@ -28,6 +29,15 @@ pub fn movement(
 
         if keyboard_input.pressed(KeyCode::X) {
             ortho.scale -= 0.1;
+        }
+
+        for ev in scroll_event.iter() {
+            match ev.unit {
+                bevy::input::mouse::MouseScrollUnit::Line => {
+                    ortho.scale += 0.1 * ev.y;
+                }
+                bevy::input::mouse::MouseScrollUnit::Pixel => todo!(),
+            }
         }
 
         if ortho.scale < 0.2 {
