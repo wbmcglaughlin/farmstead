@@ -4,6 +4,7 @@ use entities::{
     player::{PlayerSpawnTimer, PLAYER_SPAWN_TIMER_COOLDOWN},
     EntityJobSpawnQueue, EntityTileStorage,
 };
+use jobs::JobCleanUpQueue;
 mod entities;
 mod jobs;
 mod map;
@@ -30,12 +31,14 @@ fn main() {
         )))
         .insert_resource(EntityJobSpawnQueue::new())
         .insert_resource(EntityTileStorage::new())
+        .insert_resource(JobCleanUpQueue::new())
         .add_systems(
             Startup,
             (
                 ui::camera::add_camera,
                 map::tilemap::generate_map,
                 ui::selection::create_rect_sprite,
+                entities::player::spawn_player,
             ),
         )
         .add_systems(PostStartup, jobs::job::generate_job_queue)
@@ -45,7 +48,6 @@ fn main() {
                 ui::camera::movement,
                 ui::mode::switch_mode,
                 ui::selection::adjust_rect_visibility_and_size,
-                entities::player::spawn_player,
                 entities::player::move_to_target,
                 entities::player::player_movement,
                 entities::player::search_for_job,
@@ -53,6 +55,7 @@ fn main() {
                 entities::player::execute_job,
                 entities::plant::animate_plant,
                 entities::add_tile_entity_jobs,
+                jobs::clean_jobs,
             ),
         )
         .add_systems(

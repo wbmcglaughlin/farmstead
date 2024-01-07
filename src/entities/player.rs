@@ -1,15 +1,15 @@
 use bevy::prelude::*;
-use bevy_ecs_tilemap::{
-    map::{TilemapSize, TilemapTileSize},
-    tiles::{TileStorage, TileTextureIndex},
-};
+use bevy_ecs_tilemap::map::{TilemapSize, TilemapTileSize};
 
 use crate::{
-    jobs::job::{self, Job, Jobs},
-    map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
+    jobs::{
+        job::{self, Job, Jobs},
+        JobCleanUpQueue,
+    },
+    map::tilemap::JobLayerTileMap,
 };
 
-use super::{plant::Plant, EntityTileStorage};
+use super::{plant::Plant, EntityTileStorage, TileEntityType};
 
 const PLAYER_SPEED: f32 = 30.0;
 pub const PLAYER_SPAWN_TIMER_COOLDOWN: f32 = 0.5;
@@ -48,23 +48,10 @@ pub struct AnimationTimer(Timer);
 
 pub fn spawn_player(
     mut commands: Commands,
-    time: Res<Time>,
-    mut timer: ResMut<PlayerSpawnTimer>,
-    keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    // update our timer with the time elapsed since the last update
-    // if that caused the timer to finish, we say hello to everyone
-    if !timer.0.tick(time.delta()).just_finished() {
-        return;
-    }
-
-    if !keyboard_input.pressed(KeyCode::P) {
-        return;
-    }
-
-    let texture_handle = asset_server.load("walk.png");
+    let texture_handle = asset_server.load("sprites/walk.png");
     let texture_atlas =
         TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -74,7 +61,7 @@ pub fn spawn_player(
 
     let hightlight = commands
         .spawn(SpriteBundle {
-            texture: asset_server.load("highlight.png"),
+            texture: asset_server.load("sprites/highlight.png"),
             transform: player_transform,
             visibility: Visibility::Hidden,
             ..default()
@@ -200,38 +187,20 @@ pub fn search_for_job(
 pub fn execute_job(
     time: Res<Time>,
     mut player_entity: Query<&mut Player>,
-    jobtile_map_query: Query<&TileStorage, With<JobLayerTileMap>>,
-    tilemap_query: Query<&TileStorage, With<MainTileMap>>,
-    mut tile_query: Query<(&mut TileTextureIndex, &mut TileComponent)>,
-    mut job_tile_query: Query<&mut TileTextureIndex, Without<TileComponent>>,
     tile_mapping: ResMut<EntityTileStorage>,
     mut tile_entity_query: Query<&mut Plant>,
+    mut job_cleanup_queue: ResMut<JobCleanUpQueue>,
 ) {
-    let jobtile_storage = jobtile_map_query.single();
-    let tile_storage = tilemap_query.single();
-
     for mut player in player_entity.iter_mut() {
         if player.target.is_none() {
             if let Some(job) = &mut player.job {
                 match &job.jtype {
-                    job::JobType::Tile(tile_job) => {
-                        if let (Some(job_tile), Some(tile)) = (
-                            jobtile_storage.get(&tile_job.tilepos),
-                            tile_storage.get(&tile_job.tilepos),
-                        ) {
-                            if !job.time.tick(time.delta()).finished() {
-                                continue;
-                            }
-                            // TODO: if either of these two Ok's fall through unexpected behaviour will occur.
-                            if let Ok(mut job_tile_texture) = job_tile_query.get_mut(job_tile) {
-                                job_tile_texture.0 = 0;
-                            }
-                            if let Ok((mut tile_texture, mut tiles)) = tile_query.get_mut(tile) {
-                                tile_texture.0 = tile_job.tile.get_texture_index();
-                                tiles.update_tile_type(tile_job.tile);
-                            }
-                            player.job = None;
+                    job::JobType::Tile(_) => {
+                        if !job.time.tick(time.delta()).finished() {
+                            continue;
                         }
+                        job_cleanup_queue.queue.push(job.clone());
+                        player.job = None;
                     }
                     job::JobType::Entity(_) => todo!(),
                     job::JobType::TileEntity(tile_job) => {
@@ -239,7 +208,7 @@ pub fn execute_job(
                             continue;
                         }
                         match tile_job.etype {
-                            super::TileEntityType::Plant(_) => {
+                            TileEntityType::Plant(_) => {
                                 if let Some(plant_entity) =
                                     tile_mapping.storage.get(&tile_job.tilepos)
                                 {
