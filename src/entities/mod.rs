@@ -9,6 +9,7 @@ use crate::{
 use self::plant::{plant_bundle, GrowthStage, Plant, PlantType};
 
 pub mod click;
+pub mod hitbox;
 pub mod material;
 pub mod plant;
 pub mod player;

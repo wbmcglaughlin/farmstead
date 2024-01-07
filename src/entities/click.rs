@@ -13,6 +13,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_ecs_tilemap::prelude::*;
 
 use super::{
+    hitbox::{self, collision_aabb, HitBox},
     plant::PlantType,
     player::{Highlight, Player},
     tool::{Tool, ToolType},
@@ -69,7 +70,7 @@ pub fn click_drag_handler(
 }
 
 pub fn check_entities_selection(
-    mut player_entity: Query<(&mut Transform, &mut Player, &mut Children)>,
+    mut player_entity: Query<(&mut Transform, &mut Player, &HitBox, &mut Children)>,
     mut highlight: Query<&mut Visibility, With<Highlight>>,
     mut selections: Query<&mut EntitySelectionRectangle>,
     mut jobs: ResMut<Jobs>,
@@ -79,7 +80,7 @@ pub fn check_entities_selection(
             continue;
         }
         let selection_sqaure_size = selection.get_area();
-        for (transform, mut player, children) in player_entity.iter_mut() {
+        for (transform, mut player, hitbox, children) in player_entity.iter_mut() {
             // Iterate over the children, there should only be one currently.
             for child in &children {
                 // Get the query element, this will throw an error if it doesnt contain a
@@ -90,12 +91,7 @@ pub fn check_entities_selection(
                     if selection_sqaure_size.is_none() || selection_sqaure_size.unwrap() < 10.0 {
                         if let Some(start) = selection.start {
                             if *vis != Visibility::Visible {
-                                // TODO: need to handle this better. Hard coded currently.
-                                let distance_squared = (start.x - transform.translation.x)
-                                    .powf(2.0)
-                                    + (start.y - transform.translation.y).powf(2.0);
-
-                                if distance_squared < 9.0 {
+                                if collision_aabb(transform.translation, hitbox, start) {
                                     *vis = Visibility::Visible;
                                 }
                             } else {
