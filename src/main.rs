@@ -35,6 +35,7 @@ fn main() {
                 entities::player::spawn_player,
             ),
         )
+        .add_systems(PostStartup, map::tilemap::add_resources)
         .add_systems(
             Update,
             (
