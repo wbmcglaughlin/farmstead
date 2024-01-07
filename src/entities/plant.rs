@@ -45,7 +45,7 @@ pub fn animate_plant(
         plant.stage_progress.tick(time.delta());
         if plant.stage_progress.just_finished() {
             sprite.index = if sprite.index == indices.last {
-                indices.first
+                continue;
             } else {
                 sprite.index + 1
             };
