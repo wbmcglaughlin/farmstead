@@ -48,22 +48,9 @@ pub struct AnimationTimer(Timer);
 
 pub fn spawn_player(
     mut commands: Commands,
-    time: Res<Time>,
-    mut timer: ResMut<PlayerSpawnTimer>,
-    keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    // update our timer with the time elapsed since the last update
-    // if that caused the timer to finish, we say hello to everyone
-    if !timer.0.tick(time.delta()).just_finished() {
-        return;
-    }
-
-    if !keyboard_input.pressed(KeyCode::P) {
-        return;
-    }
-
     let texture_handle = asset_server.load("sprites/walk.png");
     let texture_atlas =
         TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1, None, None);

@@ -1,7 +1,4 @@
-use crate::{
-    entities::{plant::Plant, player::Player, EntityTileStorage, TileEntityType},
-    map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent},
-};
+use crate::map::tilemap::{JobLayerTileMap, MainTileMap, TileComponent};
 
 use self::job::Job;
 use bevy::prelude::*;
