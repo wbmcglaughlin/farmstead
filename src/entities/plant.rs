@@ -6,15 +6,17 @@ use crate::map::tilemap::tile_pos_to_transfrom;
 #[derive(Debug, Clone, Copy)]
 pub enum PlantType {
     Wheat,
+    Carrot,
 }
 
 impl PlantType {
     pub fn png_file(&self) -> String {
         let filename = match self {
-            PlantType::Wheat => "sprites/wheat.png",
+            PlantType::Wheat => "wheat.png",
+            PlantType::Carrot => "carrot.png",
         };
 
-        String::from(filename)
+        String::from("sprites/plants/") + filename
     }
 }
 
