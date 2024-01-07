@@ -9,7 +9,7 @@ use crate::{
     map::tilemap::JobLayerTileMap,
 };
 
-use super::{plant::Plant, EntityTileStorage, TileEntityType};
+use super::{hitbox::HitBox, plant::Plant, EntityTileStorage, TileEntityType};
 
 const PLAYER_SPEED: f32 = 30.0;
 pub const PLAYER_SPAWN_TIMER_COOLDOWN: f32 = 0.5;
@@ -86,6 +86,7 @@ pub fn spawn_player(
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             Player::new(),
+            HitBox::new(16.0, 16.0),
         ))
         .add_child(highlight);
 }

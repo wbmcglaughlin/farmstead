@@ -56,6 +56,7 @@ fn main() {
                 entities::plant::animate_plant,
                 entities::add_tile_entity_jobs,
                 jobs::clean_jobs,
+                entities::hitbox::toggle_hitbox,
             ),
         )
         .add_systems(
