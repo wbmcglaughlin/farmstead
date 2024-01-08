@@ -6,18 +6,26 @@ use crate::{
     map::tilemap::JobLayerTileMap,
 };
 
-use self::plant::{plant_bundle, GrowthStage, Plant, PlantType};
+use self::{
+    plant::{plant_bundle, GrowthStage, Plant, PlantType},
+    resource::ResourceType,
+};
 
 pub mod click;
 pub mod hitbox;
 pub mod material;
 pub mod plant;
 pub mod player;
+pub mod resource;
 pub mod tool;
+
+#[derive(Component)]
+pub struct TileEntity;
 
 #[derive(Debug, Clone)]
 pub enum TileEntityType {
     Plant(PlantType),
+    Resource(ResourceType),
 }
 
 #[derive(Resource)]
@@ -57,6 +65,7 @@ pub fn add_tile_entity_jobs(
         match &queue_item.jtype {
             crate::jobs::job::JobType::Tile(_) => todo!(),
             crate::jobs::job::JobType::TileEntity(tile_entity) => {
+                let tilemap_transform = tilemap_query.single();
                 match &tile_entity.etype {
                     TileEntityType::Plant(plant_type) => {
                         let texture_handle = asset_server.load(plant_type.png_file());
@@ -71,17 +80,17 @@ pub fn add_tile_entity_jobs(
                         let texture_atlas_handle = texture_atlases.add(texture_atlas);
                         // Use only the subset of sprites in the sheet that make up the run animation
                         let growth_stage = GrowthStage { first: 0, last: 4 };
-                        let tilemap_transform = tilemap_query.single();
                         let tile_pos = tile_entity.tilepos;
 
                         let entity = commands
                             .spawn((
                                 plant_bundle(
                                     texture_atlas_handle,
-                                    growth_stage,
+                                    growth_stage.first,
                                     tile_pos,
                                     tilemap_transform.translation,
                                 ),
+                                TileEntity,
                                 Plant {
                                     ptype: *plant_type,
                                     tile_pos,
@@ -95,6 +104,35 @@ pub fn add_tile_entity_jobs(
                         tile_entity_mapping.storage.set(&tile_pos, entity);
 
                         jobs.in_queue.push(queue_item.clone());
+                    }
+                    TileEntityType::Resource(resource_type) => {
+                        let texture_handle = asset_server.load(resource_type.file_path());
+                        let texture_atlas = TextureAtlas::from_grid(
+                            texture_handle,
+                            Vec2::new(16.0, 16.0),
+                            1,
+                            1,
+                            None,
+                            None,
+                        );
+                        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+                        // Use only the subset of sprites in the sheet that make up the run animation
+                        let tile_pos = tile_entity.tilepos;
+
+                        let entity = commands
+                            .spawn((
+                                plant_bundle(
+                                    texture_atlas_handle,
+                                    0,
+                                    tile_pos,
+                                    tilemap_transform.translation,
+                                ),
+                                TileEntity,
+                                queue_item.clone(),
+                            ))
+                            .id();
+
+                        tile_entity_mapping.storage.set(&tile_pos, entity);
                     }
                 }
             }

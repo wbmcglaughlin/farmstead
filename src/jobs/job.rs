@@ -32,7 +32,7 @@ pub enum JobType {
     Entity(EntityJob),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Component, Debug, Clone)]
 pub struct Job {
     pub time: Timer,
     pub jtype: JobType,

@@ -55,7 +55,7 @@ pub fn animate_plant(
 
 pub fn plant_bundle(
     texture_atlas: Handle<TextureAtlas>,
-    growth_stage: GrowthStage,
+    growth_stage: usize,
     tile_pos: TilePos,
     tilemap_translation: Vec3,
 ) -> SpriteSheetBundle {
@@ -64,7 +64,7 @@ pub fn plant_bundle(
 
     SpriteSheetBundle {
         texture_atlas,
-        sprite: TextureAtlasSprite::new(growth_stage.first),
+        sprite: TextureAtlasSprite::new(growth_stage),
         transform: Transform::from_scale(Vec3::splat(1.0)).with_translation(offset),
         ..default()
     }

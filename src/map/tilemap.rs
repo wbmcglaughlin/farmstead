@@ -2,6 +2,15 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use std::time::SystemTime;
 
+use crate::{
+    entities::{
+        resource::ResourceType,
+        tool::{Tool, ToolType},
+        EntityJobSpawnQueue, TileEntityType,
+    },
+    jobs::job::{Job, JobType, TileEntityJob},
+};
+
 use super::{
     perlin::{generate_perlin_noise_map, PerlinNoiseSeed},
     tile::{Tiles, WaterTiles},
@@ -19,7 +28,7 @@ pub struct WaterTileMap;
 #[derive(Component)]
 pub struct PlantTileLayer;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct TileComponent {
     pub tile: Tiles,
 }
@@ -168,6 +177,36 @@ pub(crate) fn generate_map(mut commands: Commands, asset_server: Res<AssetServer
         },
         JobLayerTileMap,
     ));
+}
+
+pub fn add_resources(
+    tilemap_query_tile: Query<(&TileStorage, &TilemapSize), With<MainTileMap>>,
+    tiles: Query<&TileComponent>,
+    water_query_tile: Query<&TileStorage, With<WaterTileMap>>,
+    mut entity_job_queue: ResMut<EntityJobSpawnQueue>,
+) {
+    let (tiles_storage, tilemap_size) = tilemap_query_tile.single();
+    for x in 0..tilemap_size.x {
+        for y in 0..tilemap_size.y {
+            let tilepos = TilePos { x, y };
+            if let Some(tile) = tiles_storage.get(&tilepos) {
+                if let Ok(tile_val) = tiles.get(tile) {
+                    if tile_val.tile == Tiles::Field && rand::random::<u32>() % 60 == 0 {
+                        entity_job_queue.queue.push(Job {
+                            time: Timer::from_seconds(4.0, TimerMode::Once),
+                            jtype: JobType::TileEntity(TileEntityJob {
+                                tilepos,
+                                etype: TileEntityType::Resource(ResourceType::Tree),
+                            }),
+                            tool: Some(Tool {
+                                tool_type: ToolType::Shovel,
+                            }),
+                        })
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn tile_height_mapping(val: f64) -> Tiles {

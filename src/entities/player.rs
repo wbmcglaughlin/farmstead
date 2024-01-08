@@ -12,10 +12,6 @@ use crate::{
 use super::{hitbox::HitBox, plant::Plant, EntityTileStorage, TileEntityType};
 
 const PLAYER_SPEED: f32 = 30.0;
-pub const PLAYER_SPAWN_TIMER_COOLDOWN: f32 = 0.5;
-
-#[derive(Resource)]
-pub struct PlayerSpawnTimer(pub Timer);
 
 #[derive(Component)]
 pub struct Player {
@@ -226,6 +222,7 @@ pub fn execute_job(
                                     }
                                 }
                             }
+                            TileEntityType::Resource(_) => todo!(),
                         }
                     }
                 }

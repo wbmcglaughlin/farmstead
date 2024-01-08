@@ -13,11 +13,11 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_ecs_tilemap::prelude::*;
 
 use super::{
-    hitbox::{self, collision_aabb, HitBox},
+    hitbox::{collision_aabb, HitBox},
     plant::PlantType,
     player::{Highlight, Player},
     tool::{Tool, ToolType},
-    EntityJobSpawnQueue, TileEntityType,
+    EntityJobSpawnQueue, EntityTileStorage, TileEntity, TileEntityType,
 };
 
 pub fn click_drag_handler(
@@ -124,28 +124,39 @@ pub fn check_entities_selection(
 
 pub fn check_tiles_selection(
     mut jobs: ResMut<Jobs>,
-    tilemap_query: Query<(&TileStorage, &TilemapTileSize, &TilemapSize), With<JobLayerTileMap>>,
+    job_layer_tile_query: Query<
+        (&TileStorage, &TilemapTileSize, &TilemapSize),
+        With<JobLayerTileMap>,
+    >,
     tilemap_query_tile: Query<&TileStorage, With<MainTileMap>>,
-    mut tile_query: Query<&TileComponent>,
+    mut tile_component_query: Query<&TileComponent>,
     mut tile_texture_query: Query<&mut TileTextureIndex>,
     mut selections: Query<&mut EntitySelectionRectangle>,
     mut entity_job_spawn_queue: ResMut<EntityJobSpawnQueue>,
+    mut tile_entity_mapping: ResMut<EntityTileStorage>,
+    mut tile_entity_query: Query<&TileEntity>,
 ) {
     for mut selection in selections.iter_mut() {
         if selection.status != SelectionStatus::Selected || selection.get_area().is_none() {
             continue;
         }
-        let (tile_storage, tilemap_size, map_size) = tilemap_query.single();
+        let (tile_storage, tilemap_size, map_size) = job_layer_tile_query.single();
         let tiles_storage = tilemap_query_tile.single();
         let tile_positions = get_tile_positions(tilemap_size, map_size, &selection);
         for tile_pos in tile_positions.iter() {
+            if let Some(entity) = tile_entity_mapping.storage.get(tile_pos) {
+                if tile_entity_query.get_mut(entity).is_ok() {
+                    continue;
+                }
+            }
             if let (Some(tile), Some(tiles)) =
                 (tile_storage.get(tile_pos), tiles_storage.get(tile_pos))
             {
-                if let (Ok(mut tile_texture), Ok(tile_comp)) =
-                    (tile_texture_query.get_mut(tile), tile_query.get_mut(tiles))
-                {
-                    if tile_comp.tile == Tiles::Field {
+                if let (Ok(mut job_tile_texture), Ok(tile_component)) = (
+                    tile_texture_query.get_mut(tile),
+                    tile_component_query.get_mut(tiles),
+                ) {
+                    if tile_component.tile == Tiles::Field {
                         let tool_type = ToolType::Hoe;
                         let job_type = TileJob {
                             tilepos: *tile_pos,
@@ -156,8 +167,8 @@ pub fn check_tiles_selection(
                             tool: Some(Tool { tool_type }),
                             time: Timer::from_seconds(2.0, TimerMode::Once),
                         });
-                        tile_texture.0 = tool_type.get_texture_index();
-                    } else if tile_comp.tile == Tiles::Farmland {
+                        job_tile_texture.0 = tool_type.get_texture_index();
+                    } else if tile_component.tile == Tiles::Farmland {
                         // TODO: this needs to push to the EntitySpawnJob queue.
                         // Each pass of the entity spawn queue will render the tile with an opacity,
                         // and push to the job queue.
