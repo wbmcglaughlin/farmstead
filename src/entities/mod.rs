@@ -19,6 +19,9 @@ pub mod player;
 pub mod resource;
 pub mod tool;
 
+#[derive(Component)]
+pub struct TileEntity;
+
 #[derive(Debug, Clone)]
 pub enum TileEntityType {
     Plant(PlantType),
@@ -87,6 +90,7 @@ pub fn add_tile_entity_jobs(
                                     tile_pos,
                                     tilemap_transform.translation,
                                 ),
+                                TileEntity,
                                 Plant {
                                     ptype: *plant_type,
                                     tile_pos,
@@ -123,6 +127,7 @@ pub fn add_tile_entity_jobs(
                                     tile_pos,
                                     tilemap_transform.translation,
                                 ),
+                                TileEntity,
                                 queue_item.clone(),
                             ))
                             .id();
